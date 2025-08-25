@@ -1,0 +1,420 @@
+/* NEXGEN Study Centre Custom Styles */
+
+:root {
+    /* NEXGEN Brand Colors - Inspired by hummingbird logo */
+    --primary-color: #20b2aa;
+    --primary-dark: #178f8f;
+    --secondary-color: #32cd32;
+    --accent-color: #ff69b4;
+    --success-color: #28a745;
+    --info-color: #17a2b8;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --teal-color: #20b2aa;
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, #20b2aa 0%, #32cd32 50%, #ff69b4 100%);
+    --gradient-secondary: linear-gradient(135deg, #32cd32 0%, #20b2aa 100%);
+    
+    /* Shadows */
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 8px rgba(0,0,0,0.15);
+    --shadow-lg: 0 8px 16px rgba(0,0,0,0.2);
+}
+
+/* Global Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+}
+
+/* Gradient Text */
+.text-gradient-primary {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+}
+
+/* Gradient Backgrounds */
+.bg-gradient-primary {
+    background: var(--gradient-primary) !important;
+}
+
+.bg-gradient-secondary {
+    background: var(--gradient-secondary) !important;
+}
+
+/* Custom Button Styles */
+.btn-gradient-primary {
+    background: var(--gradient-primary);
+    border: none;
+    color: white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-gradient-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    color: white;
+}
+
+/* WhatsApp Button */
+.btn-whatsapp {
+    background-color: #25d366;
+    border-color: #25d366;
+    color: white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-whatsapp:hover {
+    background-color: #128c7e;
+    border-color: #128c7e;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Custom Color Classes */
+.text-teal {
+    color: var(--teal-color) !important;
+}
+
+.bg-teal {
+    background-color: var(--teal-color) !important;
+}
+
+/* Metric Cards */
+.metric-card {
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.metric-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.metric-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.metric-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.metric-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 0;
+}
+
+/* Shift Items */
+.shift-item {
+    padding: 15px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.shift-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.shift-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.shift-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+/* Navigation Enhancements */
+.navbar {
+    box-shadow: var(--shadow-md);
+    border-bottom: 3px solid var(--accent-color);
+}
+
+.navbar-brand img {
+    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.1));
+}
+
+.nav-link {
+    transition: all 0.3s ease;
+    border-radius: 5px;
+    margin: 0 2px;
+}
+
+.nav-link:hover {
+    background-color: rgba(255,255,255,0.1);
+    transform: translateY(-1px);
+}
+
+/* Card Enhancements */
+.card {
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-lg);
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+    border-bottom: 3px solid rgba(255,255,255,0.2);
+}
+
+/* Form Enhancements */
+.form-control, .form-select {
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    padding: 12px 15px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(32, 178, 170, 0.25);
+}
+
+.form-label {
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+/* Table Enhancements */
+.table {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(32, 178, 170, 0.05);
+}
+
+/* Badge Enhancements */
+.badge {
+    border-radius: 20px;
+    padding: 8px 12px;
+    font-weight: 600;
+}
+
+/* Alert Enhancements */
+.alert {
+    border-radius: 15px;
+    border: none;
+    box-shadow: var(--shadow-sm);
+}
+
+/* Button Group Enhancements */
+.btn-group .btn {
+    border-radius: 8px !important;
+    margin: 0 1px;
+}
+
+/* Customer Avatar */
+.customer-avatar .rounded-circle {
+    border: 3px solid var(--primary-color);
+    font-size: 1rem;
+}
+
+/* Modal Enhancements */
+.modal-content {
+    border-radius: 20px;
+    border: none;
+    box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+    border-radius: 20px 20px 0 0 !important;
+}
+
+/* Pagination */
+.pagination .page-link {
+    border-radius: 10px;
+    margin: 0 2px;
+    border: 2px solid #e9ecef;
+    color: var(--primary-color);
+}
+
+.pagination .page-item.active .page-link {
+    background: var(--gradient-primary);
+    border-color: transparent;
+}
+
+/* Animation Classes */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .metric-card {
+        margin-bottom: 1rem;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+    }
+    
+    .btn-group .btn {
+        margin-bottom: 0.5rem;
+    }
+    
+    .table-responsive {
+        font-size: 0.9rem;
+    }
+}
+
+/* Print Styles */
+@media print {
+    body {
+        background: white !important;
+    }
+    
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #dee2e6 !important;
+    }
+    
+    .text-gradient-primary {
+        color: var(--primary-color) !important;
+        -webkit-text-fill-color: var(--primary-color) !important;
+    }
+    
+    .bg-gradient-primary {
+        background: var(--primary-color) !important;
+    }
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Success States */
+.success-icon {
+    color: var(--success-color);
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+/* Empty States */
+.empty-state {
+    padding: 3rem 1rem;
+    text-align: center;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* WhatsApp Integration Styles */
+.whatsapp-float {
+    position: fixed;
+    width: 60px;
+    height: 60px;
+    bottom: 40px;
+    right: 40px;
+    background-color: #25d366;
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    font-size: 24px;
+    line-height: 60px;
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.whatsapp-float:hover {
+    color: white;
+    transform: scale(1.1);
+    text-decoration: none;
+}
+
+/* Receipt Specific Styles */
+.receipt-container {
+    background: white;
+    box-shadow: var(--shadow-lg);
+}
+
+.receipt-header {
+    border-bottom: 3px solid var(--primary-color);
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+}
+
+/* Study Centre Branding */
+.nexgen-brand {
+    font-family: 'Segoe UI', sans-serif;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.hummingbird-accent {
+    background: linear-gradient(45deg, #20b2aa, #32cd32, #ff69b4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--gradient-primary);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark);
+}

@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - NEXGEN Study Centre{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="text-gradient-primary fw-bold mb-4">
+                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+            </h1>
+        </div>
+    </div>
+
+    <!-- Metrics Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="card metric-card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="metric-icon bg-success">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="metric-number text-success">{{ metrics.active_members }}</h3>
+                    <p class="metric-label">Active Members</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="card metric-card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="metric-icon bg-warning">
+                        <i class="fas fa-calendar-times"></i>
+                    </div>
+                    <h3 class="metric-number text-warning">{{ metrics.expired_subscriptions }}</h3>
+                    <p class="metric-label">Expired Subscriptions</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="card metric-card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="metric-icon bg-primary">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="metric-number text-primary">{{ format_currency(metrics.current_month_pl) }}</h3>
+                    <p class="metric-label">Current Month P&L</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="card metric-card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="metric-icon bg-info">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <h3 class="metric-number text-info">{{ format_currency(metrics.net_pl) }}</h3>
+                    <p class="metric-label">Net P&L</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="card metric-card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="metric-icon bg-teal">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <h3 class="metric-number text-teal">{{ format_currency(metrics.total_collection) }}</h3>
+                    <p class="metric-label">Total Collection</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="card metric-card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="metric-icon bg-danger">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <h3 class="metric-number text-danger">{{ format_currency(metrics.total_expenses) }}</h3>
+                    <p class="metric-label">Total Expenses</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shift Data Card -->
+    <div class="row g-4 mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Shift Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for shift, value in shift_data.items() %}
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <div class="shift-item text-center">
+                                <div class="shift-value">{{ value }}</div>
+                                <div class="shift-label">{{ shift }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Last 3 Months P&L Summary</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="plChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-user-graduate me-2"></i>Admission Summary (3 Months)</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="admissionChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expiring Subscriptions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-gradient-warning text-white">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Expiring Subscriptions (Next 7 Days)</h5>
+                </div>
+                <div class="card-body">
+                    {% if expiring_subscriptions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Customer Name</th>
+                                    <th>Contact</th>
+                                    <th>Expiry Date</th>
+                                    <th>Plan</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for customer, transaction in expiring_subscriptions %}
+                                <tr>
+                                    <td class="fw-semibold">{{ customer.full_name }}</td>
+                                    <td>{{ customer.contact_number }}</td>
+                                    <td>
+                                        <span class="badge bg-warning">
+                                            {{ transaction.end_date.strftime('%d/%m/%Y') }}
+                                        </span>
+                                    </td>
+                                    <td>{{ transaction.plan }}</td>
+                                    <td>
+                                        <a href="{{ create_whatsapp_url(customer.contact_number, get_whatsapp_expiry_reminder(customer.full_name, (transaction.end_date - date.today()).days)) }}" 
+                                           class="btn btn-whatsapp btn-sm" target="_blank">
+                                            <i class="fab fa-whatsapp me-1"></i>WhatsApp
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                        <h5 class="text-muted">No subscriptions expiring in the next 7 days</h5>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Initialize dashboard charts
+document.addEventListener('DOMContentLoaded', function() {
+    // Fetch dashboard data
+    fetch('/api/dashboard-data')
+        .then(response => response.json())
+        .then(data => {
+            // P&L Chart
+            const plCtx = document.getElementById('plChart').getContext('2d');
+            new Chart(plCtx, {
+                type: 'bar',
+                data: {
+                    labels: data.months,
+                    datasets: [
+                        {
+                            label: 'Revenue',
+                            data: data.revenue_data,
+                            backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Expenses',
+                            data: data.expense_data,
+                            backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Admission Chart
+            const admissionCtx = document.getElementById('admissionChart').getContext('2d');
+            new Chart(admissionCtx, {
+                type: 'bar',
+                data: {
+                    labels: data.months,
+                    datasets: [{
+                        label: 'New Admissions',
+                        data: data.admission_data,
+                        backgroundColor: 'rgba(75, 192, 192, 0.8)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => console.error('Error loading dashboard data:', error));
+});
+</script>
+{% endblock %}

@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}Admission Form - NEXGEN Study Centre{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h3 class="mb-0"><i class="fas fa-user-plus me-2"></i>Student Admission Form</h3>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" id="admissionForm">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row g-3">
+                            <!-- Contact Number -->
+                            <div class="col-md-6">
+                                <label for="{{ form.contact_number.id }}" class="form-label fw-semibold">
+                                    <i class="fas fa-phone me-1 text-primary"></i>Contact Number *
+                                </label>
+                                {{ form.contact_number(class="form-control", required=true) }}
+                                {% if form.contact_number.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.contact_number.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Full Name -->
+                            <div class="col-md-6">
+                                <label for="{{ form.full_name.id }}" class="form-label fw-semibold">
+                                    <i class="fas fa-user me-1 text-primary"></i>Full Name *
+                                </label>
+                                {{ form.full_name(class="form-control", required=true) }}
+                                {% if form.full_name.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.full_name.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Date of Birth -->
+                            <div class="col-md-6">
+                                <label for="{{ form.date_of_birth.id }}" class="form-label fw-semibold">
+                                    <i class="fas fa-calendar me-1 text-primary"></i>Date of Birth *
+                                </label>
+                                {{ form.date_of_birth(class="form-control", required=true, onchange="calculateAge()") }}
+                                {% if form.date_of_birth.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.date_of_birth.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Age (Auto-calculated) -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-birthday-cake me-1 text-primary"></i>Age
+                                </label>
+                                <input type="text" class="form-control" id="ageDisplay" readonly placeholder="Auto-calculated">
+                            </div>
+
+                            <!-- Gender -->
+                            <div class="col-md-6">
+                                <label for="{{ form.gender.id }}" class="form-label fw-semibold">
+                                    <i class="fas fa-venus-mars me-1 text-primary"></i>Gender *
+                                </label>
+                                {{ form.gender(class="form-select", required=true) }}
+                                {% if form.gender.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.gender.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Email -->
+                            <div class="col-md-6">
+                                <label for="{{ form.email.id }}" class="form-label fw-semibold">
+                                    <i class="fas fa-envelope me-1 text-primary"></i>Email Address *
+                                </label>
+                                {{ form.email(class="form-control", required=true, type="email") }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.email.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Study Option -->
+                            <div class="col-md-6">
+                                <label for="{{ form.study_option.id }}" class="form-label fw-semibold">
+                                    <i class="fas fa-graduation-cap me-1 text-primary"></i>Study Option *
+                                </label>
+                                {{ form.study_option(class="form-select", required=true) }}
+                                {% if form.study_option.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.study_option.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Education Details -->
+                            <div class="col-12">
+                                <label for="{{ form.education_details.id }}" class="form-label fw-semibold">
+                                    <i class="fas fa-book me-1 text-primary"></i>Education Details
+                                </label>
+                                {{ form.education_details(class="form-control", rows="3") }}
+                                {% if form.education_details.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.education_details.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Address -->
+                            <div class="col-12">
+                                <label for="{{ form.address.id }}" class="form-label fw-semibold">
+                                    <i class="fas fa-map-marker-alt me-1 text-primary"></i>Address *
+                                </label>
+                                {{ form.address(class="form-control", rows="3", required=true) }}
+                                {% if form.address.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.address.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Note -->
+                            <div class="col-12">
+                                <label for="{{ form.note.id }}" class="form-label fw-semibold">
+                                    <i class="fas fa-sticky-note me-1 text-primary"></i>Note
+                                </label>
+                                {{ form.note(class="form-control", rows="2") }}
+                                {% if form.note.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.note.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="col-12 text-center">
+                                <button type="submit" class="btn btn-gradient-primary btn-lg px-5">
+                                    <i class="fas fa-paper-plane me-2"></i>Submit Admission
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function calculateAge() {
+    const birthDate = document.getElementById('date_of_birth').value;
+    if (birthDate) {
+        const birth = new Date(birthDate);
+        const today = new Date();
+        let age = today.getFullYear() - birth.getFullYear();
+        const monthDiff = today.getMonth() - birth.getMonth();
+        
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+            age--;
+        }
+        
+        document.getElementById('ageDisplay').value = age + ' years';
+    }
+}
+</script>
+{% endblock %}

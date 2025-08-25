@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}Add Transaction - NEXGEN Study Centre{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h3 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Add Transaction</h3>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" id="transactionForm">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row g-3">
+                            <!-- Customer Selection (if not pre-selected) -->
+                            {% if not selected_customer %}
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-user me-1 text-primary"></i>Select Customer *
+                                </label>
+                                <select name="customer_id" class="form-select" required>
+                                    <option value="">Choose a customer...</option>
+                                    {% for customer in customers %}
+                                    <option value="{{ customer.id }}">{{ customer.full_name }} - {{ customer.contact_number }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            {% else %}
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Customer:</strong> {{ selected_customer.full_name }} ({{ selected_customer.contact_number }})
+                                    <input type="hidden" name="customer_id" value="{{ selected_customer.id }}">
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Transaction Type -->
+                            <div class="col-md-6">
+                                <label for="{{ form.transaction_type.id }}" class="form-label fw-semibold">
+                                    <i class="fas fa-tag me-1 text-primary"></i>Transaction Type *
+                                </label>
+                                {{ form.transaction_type(class="form-select", required=true, onchange="toggleFields()") }}
+                            </div>
+
+                            <!-- Transaction Date -->
+                            <div class="col-md-6">
+                                <label for="{{ form.transaction_date.id }}" class="form-label fw-semibold">
+                                    <i class="fas fa-calendar me-1 text-primary"></i>Transaction Date *
+                                </label>
+                                {{ form.transaction_date(class="form-control", required=true) }}
+                            </div>
+
+                            <!-- Plan -->
+                            <div class="col-md-6">
+                                <label for="{{ form.plan.id }}" class="form-label fw-semibold">
+                                    <i class="fas fa-clipboard-list me-1 text-primary"></i>Plan *
+                                </label>
+                                {{ form.plan(class="form-select", required=true, onchange="calculateEndDate()") }}
+                            </div>
+
+                            <!-- Shifts -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-clock me-1 text-primary"></i>Shifts *
+                                </label>
+                                <div class="border rounded p-3">
+                                    {% for subfield in form.shifts %}
+                                        <div class="form-check">
+                                            {{ subfield(class="form-check-input") }}
+                                            {{ subfield.label(class="form-check-label") }}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Start Date -->
+                            <div class="col-md-6">
+                                <label for="{{ form.start_date.id }}" class="form-label fw-semibold">
+                                    <i class="fas fa-play-circle me-1 text-primary"></i>Start Date *
+                                </label>
+                                {{ form.start_date(class="form-control", required=true, onchange="calculateEndDate()") }}
+                            </div>
+
+                            <!-- End Date -->
+                            <div class="col-md-6">
+                                <label for="{{ form.end_date.id }}" class="form-label fw-semibold">
+                                    <i class="fas fa-stop-circle me-1 text-primary"></i>End Date *
+                                </label>
+                                {{ form.end_date(class="form-control", required=true) }}
+                            </div>
+
+                            <!-- Regular Checkbox -->
+                            <div class="col-md-6">
+                                <div class="form-check mt-4">
+                                    {{ form.is_regular(class="form-check-input") }}
+                                    <label for="{{ form.is_regular.id }}" class="form-check-label fw-semibold">
+                                        <i class="fas fa-check-circle me-1 text-primary"></i>Regular Student
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Locker Number -->
+                            <div class="col-md-6">
+                                <label for="{{ form.locker_number.id }}" class="form-label fw-semibold">
+                                    <i class="fas fa-key me-1 text-primary"></i>Locker Number
+                                </label>
+                                {{ form.locker_number(class="form-control") }}
+                            </div>
+
+                            <!-- Amount -->
+                            <div class="col-md-4">
+                                <label for="{{ form.amount.id }}" class="form-label fw-semibold">
+                                    <i class="fas fa-rupee-sign me-1 text-primary"></i>Amount *
+                                </label>
+                                {{ form.amount(class="form-control", required=true, step="0.01", onchange="calculateFinalAmount()") }}
+                            </div>
+
+                            <!-- Discount -->
+                            <div class="col-md-4">
+                                <label for="{{ form.discount.id }}" class="form-label fw-semibold">
+                                    <i class="fas fa-percentage me-1 text-primary"></i>Discount
+                                </label>
+                                {{ form.discount(class="form-control", step="0.01", onchange="calculateFinalAmount()") }}
+                            </div>
+
+                            <!-- Final Amount (Auto-calculated) -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-calculator me-1 text-primary"></i>Final Amount
+                                </label>
+                                <input type="text" class="form-control bg-light" id="finalAmountDisplay" readonly placeholder="Auto-calculated">
+                            </div>
+
+                            <!-- Payment Method -->
+                            <div class="col-md-6">
+                                <label for="{{ form.payment_method.id }}" class="form-label fw-semibold">
+                                    <i class="fas fa-credit-card me-1 text-primary"></i>Payment Method *
+                                </label>
+                                {{ form.payment_method(class="form-select", required=true) }}
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="col-12 text-center mt-4">
+                                <button type="submit" class="btn btn-gradient-primary btn-lg px-5">
+                                    <i class="fas fa-save me-2"></i>Save Transaction
+                                </button>
+                                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-lg px-4 ms-3">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleFields() {
+    const transactionType = document.getElementById('transaction_type').value;
+    // Add logic to enable/disable fields based on transaction type
+    console.log('Transaction type changed to:', transactionType);
+}
+
+function calculateEndDate() {
+    const startDate = document.getElementById('start_date').value;
+    const plan = document.getElementById('plan').value;
+    
+    if (startDate && plan) {
+        const start = new Date(startDate);
+        let end = new Date(start);
+        
+        switch(plan) {
+            case 'Monthly':
+                end.setMonth(end.getMonth() + 1);
+                break;
+            case 'Quarterly':
+                end.setMonth(end.getMonth() + 3);
+                break;
+            case 'Half Yearly':
+                end.setMonth(end.getMonth() + 6);
+                break;
+            case 'Yearly':
+                end.setFullYear(end.getFullYear() + 1);
+                break;
+            case 'Day':
+                end.setDate(end.getDate() + 1);
+                break;
+            case 'Weekend':
+                end.setDate(end.getDate() + 2);
+                break;
+        }
+        
+        document.getElementById('end_date').value = end.toISOString().split('T')[0];
+    }
+}
+
+function calculateFinalAmount() {
+    const amount = parseFloat(document.getElementById('amount').value) || 0;
+    const discount = parseFloat(document.getElementById('discount').value) || 0;
+    const finalAmount = amount - discount;
+    
+    document.getElementById('finalAmountDisplay').value = '₹' + finalAmount.toFixed(2);
+}
+
+// Initialize calculations on page load
+document.addEventListener('DOMContentLoaded', function() {
+    calculateEndDate();
+    calculateFinalAmount();
+});
+</script>
+{% endblock %}

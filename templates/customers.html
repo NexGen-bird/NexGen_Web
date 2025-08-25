@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block title %}Customers - NEXGEN Study Centre{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="text-gradient-primary fw-bold">
+                    <i class="fas fa-users me-2"></i>Customer Management
+                </h1>
+                <a href="{{ url_for('admission') }}" class="btn btn-gradient-primary">
+                    <i class="fas fa-user-plus me-2"></i>Add Customer
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="mb-0"><i class="fas fa-list me-2"></i>All Customers</h5>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex gap-2">
+                                <input type="text" class="form-control" placeholder="Search customers..." id="searchInput">
+                                <button class="btn btn-outline-primary" onclick="filterCustomers()">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if customers.items %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Customer Details</th>
+                                    <th>Contact Info</th>
+                                    <th>Study Option</th>
+                                    <th>Latest Expiry</th>
+                                    <th>Status</th>
+                                    <th>Total Transactions</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for customer_data in customers.items %}
+                                {% set customer = customer_data[0] %}
+                                {% set latest_expiry = customer_data[1] %}
+                                {% set transaction_count = customer_data[2] %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="customer-avatar me-3">
+                                                <div class="bg-gradient-primary rounded-circle d-flex align-items-center justify-content-center" 
+                                                     style="width: 40px; height: 40px;">
+                                                    <span class="text-white fw-bold">{{ customer.full_name[0].upper() }}</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="fw-semibold">{{ customer.full_name }}</div>
+                                                <small class="text-muted">Age: {{ customer.age }} years</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <div><i class="fas fa-phone text-primary me-1"></i>{{ customer.contact_number }}</div>
+                                            <div><i class="fas fa-envelope text-primary me-1"></i>{{ customer.email }}</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ customer.study_option }}</span>
+                                    </td>
+                                    <td>
+                                        {% if latest_expiry %}
+                                            {% set expiry_date = latest_expiry %}
+                                            {% if expiry_date >= date.today() %}
+                                                <span class="badge bg-success">{{ expiry_date.strftime('%d/%m/%Y') }}</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">{{ expiry_date.strftime('%d/%m/%Y') }}</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-secondary">No subscriptions</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if latest_expiry and latest_expiry >= date.today() %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% elif latest_expiry %}
+                                            <span class="badge bg-danger">Expired</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">New</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ transaction_count }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <!-- WhatsApp Button with dynamic message -->
+                                            {% if latest_expiry and latest_expiry >= date.today() %}
+                                                <!-- Active customer - general message -->
+                                                <a href="{{ create_whatsapp_url(customer.contact_number, 'Hello ' + customer.full_name + ', Hope you are doing well at NEXGEN Study Centre! Let us know if you need any assistance.') }}" 
+                                                   class="btn btn-whatsapp" target="_blank" title="WhatsApp">
+                                                    <i class="fab fa-whatsapp"></i>
+                                                </a>
+                                            {% elif latest_expiry %}
+                                                <!-- Expired customer - renewal message -->
+                                                <a href="{{ create_whatsapp_url(customer.contact_number, get_whatsapp_expiry_reminder(customer.full_name, 'expired')) }}" 
+                                                   class="btn btn-whatsapp" target="_blank" title="Renewal Reminder">
+                                                    <i class="fab fa-whatsapp"></i>
+                                                </a>
+                                            {% else %}
+                                                <!-- New customer - welcome message -->
+                                                <a href="{{ create_whatsapp_url(customer.contact_number, 'Dear ' + customer.full_name + ', Welcome to NEXGEN Study Centre! We are excited to have you join our learning community.') }}" 
+                                                   class="btn btn-whatsapp" target="_blank" title="Welcome Message">
+                                                    <i class="fab fa-whatsapp"></i>
+                                                </a>
+                                            {% endif %}
+                                            
+                                            <a href="{{ url_for('add_transaction', customer_id=customer.id) }}" 
+                                               class="btn btn-outline-success" title="Add Transaction">
+                                                <i class="fas fa-plus-circle"></i>
+                                            </a>
+                                            <button class="btn btn-outline-primary" onclick="viewCustomerDetails({{ customer.id }})" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-outline-info" onclick="editCustomer({{ customer.id }})" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if customers.pages > 1 %}
+                    <div class="card-footer">
+                        <nav aria-label="Customer pagination">
+                            <ul class="pagination justify-content-center mb-0">
+                                {% if customers.has_prev %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('customers', page=customers.prev_num) }}">Previous</a>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for page_num in customers.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                                    {% if page_num %}
+                                        {% if page_num != customers.page %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="{{ url_for('customers', page=page_num) }}">{{ page_num }}</a>
+                                            </li>
+                                        {% else %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ page_num }}</span>
+                                            </li>
+                                        {% endif %}
+                                    {% else %}
+                                        <li class="page-item disabled">
+                                            <span class="page-link">…</span>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if customers.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('customers', page=customers.next_num) }}">Next</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No customers found</h5>
+                        <p class="text-muted">Start by adding your first customer through the admission form.</p>
+                        <a href="{{ url_for('admission') }}" class="btn btn-gradient-primary">
+                            <i class="fas fa-user-plus me-2"></i>Add First Customer
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterCustomers() {
+    const searchInput = document.getElementById('searchInput');
+    const filter = searchInput.value.toUpperCase();
+    const table = document.querySelector('table tbody');
+    const rows = table.querySelectorAll('tr');
+
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        let match = false;
+        
+        cells.forEach(cell => {
+            if (cell.textContent.toUpperCase().includes(filter)) {
+                match = true;
+            }
+        });
+        
+        row.style.display = match ? '' : 'none';
+    });
+}
+
+function viewCustomerDetails(customerId) {
+    // Placeholder for view details functionality
+    alert('Customer details view for customer ' + customerId + ' would be implemented here.');
+}
+
+function editCustomer(customerId) {
+    // Placeholder for edit functionality
+    alert('Edit functionality for customer ' + customerId + ' would be implemented here.');
+}
+
+// Add search on enter key
+document.getElementById('searchInput').addEventListener('keyup', function(event) {
+    if (event.key === 'Enter') {
+        filterCustomers();
+    }
+});
+</script>
+{% endblock %}
