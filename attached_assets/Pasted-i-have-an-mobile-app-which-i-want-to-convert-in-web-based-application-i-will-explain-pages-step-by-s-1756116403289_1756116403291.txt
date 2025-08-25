@@ -1,0 +1,11 @@
+i have an mobile app which i want to convert in web based application i will explain pages step by step i have made its backend in python and supabase just make provision to replace dynamic data into webpages
+i have below sections in app -
+
+Login page (with forgot password) - this page consist of Email and password as input field and login button below that we have forgot password page where email field and send reset link button
+Dashboard page - this page have lots of info 1st we have total 6 cards (Active members,Expired subscriptions, Current Month P&L, Net P&L, Total Collection, Total Expenses) followed by Card with different data like 1st shift, 2nd shift,3rd shift, 4th shift, weekend along with their values and next section is dual bar graph for Last 3 months Summary and dual bar graph of admission summary of last 3 months respectively and last section is of expiring subscriptions with customer name and expiring date along with whatsapp icon which redirects to buisness whatapp and to preticular customers number.
+Admission form page - this page consist of form with following mentioned fields contact number, full name, date of birth, Age (Auto calculate), gender, email id, education details, study with option [CA/CS, JEE, HSC, Police Bharti, MPSC, UPSC, NEET, Medical Examinations, Banking, Law, Others], Address and note all field are mandatory. once submit it will redirect to add transaction page with all this info.
+Add Transaction page (General and admission) - in case of page redirected from admission page then will have admission selected else General, depending on this selection we have field to be disable and enable, fields - transaction date, select plan with options [Monthly, Quaterly, Half Yearly, Yearly, Day, Week-end], shifts this will be multi selection dropdown / pop up with check boxs [6am -12pm, 12pm - 6pm, 6pm - 12am, 12am -6am], start date, end date, regular check box, Locker checkbox, amount, Locker fees, txn mode, txn type, txn by
+Transactions listing page
+Customer Listing page
+Investment Summary Page (Partnerts Investment summary and returns)
+Receipt page
