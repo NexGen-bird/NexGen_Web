@@ -44,7 +44,7 @@
                     <div class="metric-icon bg-primary">
                         <i class="fas fa-chart-line"></i>
                     </div>
-                    <h3 class="metric-number text-primary">{{ format_currency(metrics.current_month_pl) }}</h3>
+                    <h3 class="metric-number text-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ format_currency(metrics.current_month_pl) }}">{{ format_currency_denomination(metrics.current_month_pl) }}</h3>
                     <p class="metric-label">Current Month P&L</p>
                 </div>
             </div>
@@ -56,7 +56,7 @@
                     <div class="metric-icon bg-info">
                         <i class="fas fa-coins"></i>
                     </div>
-                    <h3 class="metric-number text-info">{{ format_currency(metrics.net_pl) }}</h3>
+                    <h3 class="metric-number text-info" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ format_currency(metrics.net_pl) }}">{{ format_currency_denomination(metrics.net_pl) }}</h3>
                     <p class="metric-label">Net P&L</p>
                 </div>
             </div>
@@ -68,7 +68,7 @@
                     <div class="metric-icon bg-teal">
                         <i class="fas fa-money-bill-wave"></i>
                     </div>
-                    <h3 class="metric-number text-teal">{{ format_currency(metrics.total_collection) }}</h3>
+                    <h3 class="metric-number text-teal" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ format_currency(metrics.total_collection) }}">{{ format_currency_denomination(metrics.total_collection) }}</h3>
                     <p class="metric-label">Total Collection</p>
                 </div>
             </div>
@@ -80,7 +80,7 @@
                     <div class="metric-icon bg-danger">
                         <i class="fas fa-credit-card"></i>
                     </div>
-                    <h3 class="metric-number text-danger">{{ format_currency(metrics.total_expenses) }}</h3>
+                    <h3 class="metric-number text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ format_currency(metrics.total_expenses) }}">{{ format_currency_denomination(metrics.total_expenses) }}</h3>
                     <p class="metric-label">Total Expenses</p>
                 </div>
             </div>
@@ -104,6 +104,14 @@
                             </div>
                         </div>
                         {% endfor %}
+                        
+                        <!-- Available Lockers Card -->
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <div class="shift-item text-center clickable-locker" onclick="showLockerModal()">
+                                <div class="shift-value">{{ available_lockers }}</div>
+                                <div class="shift-label">Available Lockers</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -188,6 +196,30 @@
         </div>
     </div>
 </div>
+
+<!-- Locker Information Modal -->
+<div class="modal fade" id="lockerModal" tabindex="-1" aria-labelledby="lockerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-gradient-primary text-white">
+                <h5 class="modal-title" id="lockerModalLabel">
+                    <i class="fas fa-key me-2"></i>Locker Assignment Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="lockerInfo">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading locker information...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -259,5 +291,41 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => console.error('Error loading dashboard data:', error));
 });
+
+// Show locker modal and load data
+function showLockerModal() {
+    const modal = new bootstrap.Modal(document.getElementById('lockerModal'));
+    modal.show();
+    
+    // Load locker data
+    fetch('/api/lockers')
+        .then(response => response.json())
+        .then(data => {
+            displayLockerInfo(data.lockers);
+        })
+        .catch(error => {
+            console.error('Error loading locker data:', error);
+            document.getElementById('lockerInfo').innerHTML = '<div class="alert alert-danger">Error loading locker data</div>';
+        });
+}
+
+function displayLockerInfo(lockers) {
+    const container = document.getElementById('lockerInfo');
+    let html = '<div class="table-responsive"><table class="table table-hover"><thead class="table-primary"><tr><th>Locker</th><th>Status</th><th>Customer</th><th>Contact</th><th>Assigned Date</th></tr></thead><tbody>';
+    
+    lockers.forEach(locker => {
+        const statusClass = locker.status === 'Available' ? 'text-success' : 'text-danger';
+        html += `<tr>
+            <td><strong>${locker.number}</strong></td>
+            <td><span class="badge bg-${locker.status === 'Available' ? 'success' : 'danger'}">${locker.status}</span></td>
+            <td>${locker.customer || '-'}</td>
+            <td>${locker.contact || '-'}</td>
+            <td>${locker.assigned_date || '-'}</td>
+        </tr>`;
+    });
+    
+    html += '</tbody></table></div>';
+    container.innerHTML = html;
+}
 </script>
 {% endblock %}

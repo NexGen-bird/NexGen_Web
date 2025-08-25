@@ -10,125 +10,101 @@
                 <h1 class="text-gradient-primary fw-bold">
                     <i class="fas fa-chart-line me-2"></i>Investment Summary
                 </h1>
-                <button class="btn btn-gradient-primary" data-bs-toggle="modal" data-bs-target="#addInvestmentModal">
-                    <i class="fas fa-plus me-2"></i>Add Investment
-                </button>
+                <div class="text-muted">
+                    <small><i class="fas fa-info-circle me-1"></i>Manage investments through Add Transaction page</small>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Summary Cards -->
+    <!-- Single Investor Summary -->
     <div class="row g-4 mb-5">
-        <div class="col-lg-3 col-md-6">
-            <div class="card metric-card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="metric-icon bg-primary">
-                        <i class="fas fa-money-bill-wave"></i>
-                    </div>
-                    <h3 class="metric-number text-primary">{{ format_currency(summary.total_investment) }}</h3>
-                    <p class="metric-label">Total Investment</p>
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-user-tie me-2"></i>Main Investor: NEXGEN Partners</h5>
                 </div>
-            </div>
-        </div>
-
-        <div class="col-lg-3 col-md-6">
-            <div class="card metric-card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="metric-icon bg-success">
-                        <i class="fas fa-arrow-up"></i>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-lg-4 col-md-6">
+                            <div class="text-center">
+                                <div class="metric-icon bg-primary mx-auto mb-3">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                </div>
+                                <h3 class="metric-number text-primary">{{ format_currency(summary.total_investment) }}</h3>
+                                <p class="metric-label mb-0">Invested Amount</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6">
+                            <div class="text-center">
+                                <div class="metric-icon bg-success mx-auto mb-3">
+                                    <i class="fas fa-arrow-up"></i>
+                                </div>
+                                <h3 class="metric-number text-success">{{ format_currency(summary.total_returns) }}</h3>
+                                <p class="metric-label mb-0">Total Returns</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-12">
+                            <div class="text-center">
+                                <div class="metric-icon bg-info mx-auto mb-3">
+                                    <i class="fas fa-list-alt"></i>
+                                </div>
+                                <h3 class="metric-number text-info">{{ summary.transaction_count or 0 }}</h3>
+                                <p class="metric-label mb-0">Transactions</p>
+                            </div>
+                        </div>
                     </div>
-                    <h3 class="metric-number text-success">{{ format_currency(summary.total_returns) }}</h3>
-                    <p class="metric-label">Total Returns</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-3 col-md-6">
-            <div class="card metric-card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="metric-icon bg-{{ 'success' if summary.net_profit >= 0 else 'danger' }}">
-                        <i class="fas fa-{{ 'chart-line' if summary.net_profit >= 0 else 'chart-line-down' }}"></i>
-                    </div>
-                    <h3 class="metric-number text-{{ 'success' if summary.net_profit >= 0 else 'danger' }}">
-                        {{ format_currency(summary.net_profit) }}
-                    </h3>
-                    <p class="metric-label">Net Profit/Loss</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-3 col-md-6">
-            <div class="card metric-card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="metric-icon bg-info">
-                        <i class="fas fa-percentage"></i>
-                    </div>
-                    <h3 class="metric-number text-info">
-                        {{ "%.1f"|format((summary.net_profit / summary.total_investment * 100) if summary.total_investment > 0 else 0) }}%
-                    </h3>
-                    <p class="metric-label">ROI</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Investments Table -->
+    <!-- Investment Transactions -->
     <div class="row">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="fas fa-handshake me-2"></i>Partner Investments</h5>
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>Investment Transactions</h5>
+                    <a href="{{ url_for('add_transaction', transaction_type='investment') }}" class="btn btn-sm btn-gradient-primary">
+                        <i class="fas fa-plus me-1"></i>Add Investment Transaction
+                    </a>
                 </div>
                 <div class="card-body p-0">
-                    {% if investments %}
+                    {% if investment_transactions %}
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Partner Name</th>
-                                    <th>Investment Date</th>
-                                    <th>Investment Amount</th>
-                                    <th>Returns</th>
-                                    <th>Net Profit/Loss</th>
-                                    <th>ROI</th>
-                                    <th>Notes</th>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Payment Method</th>
+                                    <th>Description</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for investment in investments %}
-                                {% set net_profit = investment.returns - investment.investment_amount %}
-                                {% set roi = (net_profit / investment.investment_amount * 100) if investment.investment_amount > 0 else 0 %}
+                                {% for transaction in investment_transactions %}
                                 <tr>
-                                    <td class="fw-semibold">{{ investment.partner_name }}</td>
-                                    <td>{{ investment.investment_date.strftime('%d/%m/%Y') }}</td>
-                                    <td>{{ format_currency(investment.investment_amount) }}</td>
-                                    <td class="text-success">{{ format_currency(investment.returns) }}</td>
-                                    <td class="text-{{ 'success' if net_profit >= 0 else 'danger' }} fw-semibold">
-                                        {{ format_currency(net_profit) }}
-                                    </td>
+                                    <td>{{ transaction.transaction_date.strftime('%d/%m/%Y') }}</td>
                                     <td>
-                                        <span class="badge bg-{{ 'success' if roi >= 0 else 'danger' }}">
-                                            {{ "%.1f"|format(roi) }}%
+                                        <span class="badge bg-{{ 'success' if transaction.txn_type == 'IN' else 'danger' }}">
+                                            {{ transaction.txn_type or 'N/A' }}
                                         </span>
                                     </td>
+                                    <td class="fw-semibold">{{ format_currency(transaction.amount) }}</td>
+                                    <td>{{ transaction.payment_method }}</td>
                                     <td>
-                                        {% if investment.notes %}
-                                            <small class="text-muted">{{ investment.notes[:50] }}{{ '...' if investment.notes|length > 50 else '' }}</small>
+                                        {% if transaction.description %}
+                                            {{ transaction.description[:50] }}{{ '...' if transaction.description|length > 50 else '' }}
                                         {% else %}
                                             <span class="text-muted">-</span>
                                         {% endif %}
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-info" onclick="editInvestment({{ investment.id }})" title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="btn btn-outline-success" onclick="updateReturns({{ investment.id }})" title="Update Returns">
-                                                <i class="fas fa-chart-line"></i>
-                                            </button>
-                                            <button class="btn btn-outline-danger" onclick="deleteInvestment({{ investment.id }})" title="Delete">
-                                                <i class="fas fa-trash"></i>
+                                            <button class="btn btn-outline-info" title="View Details">
+                                                <i class="fas fa-eye"></i>
                                             </button>
                                         </div>
                                     </td>
@@ -139,12 +115,12 @@
                     </div>
                     {% else %}
                     <div class="text-center py-5">
-                        <i class="fas fa-handshake fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">No investment records found</h5>
-                        <p class="text-muted">Start by adding your first partner investment.</p>
-                        <button class="btn btn-gradient-primary" data-bs-toggle="modal" data-bs-target="#addInvestmentModal">
-                            <i class="fas fa-plus me-2"></i>Add First Investment
-                        </button>
+                        <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No investment transactions found</h5>
+                        <p class="text-muted">Start by adding your first investment transaction.</p>
+                        <a href="{{ url_for('add_transaction', transaction_type='investment') }}" class="btn btn-gradient-primary">
+                            <i class="fas fa-plus me-2"></i>Add Investment Transaction
+                        </a>
                     </div>
                     {% endif %}
                 </div>
@@ -153,94 +129,10 @@
     </div>
 </div>
 
-<!-- Add Investment Modal -->
-<div class="modal fade" id="addInvestmentModal" tabindex="-1" aria-labelledby="addInvestmentModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-gradient-primary text-white">
-                <h5 class="modal-title" id="addInvestmentModalLabel">
-                    <i class="fas fa-plus-circle me-2"></i>Add New Investment
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="addInvestmentForm">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">
-                                <i class="fas fa-user me-1 text-primary"></i>Partner Name *
-                            </label>
-                            <input type="text" class="form-control" name="partner_name" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">
-                                <i class="fas fa-calendar me-1 text-primary"></i>Investment Date *
-                            </label>
-                            <input type="date" class="form-control" name="investment_date" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">
-                                <i class="fas fa-rupee-sign me-1 text-primary"></i>Investment Amount *
-                            </label>
-                            <input type="number" class="form-control" name="investment_amount" step="0.01" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">
-                                <i class="fas fa-arrow-up me-1 text-primary"></i>Current Returns
-                            </label>
-                            <input type="number" class="form-control" name="returns" step="0.01" value="0">
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label fw-semibold">
-                                <i class="fas fa-sticky-note me-1 text-primary"></i>Notes
-                            </label>
-                            <textarea class="form-control" name="notes" rows="3"></textarea>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-gradient-primary" onclick="saveInvestment()">
-                    <i class="fas fa-save me-2"></i>Save Investment
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-function saveInvestment() {
-    // Placeholder for save investment functionality
-    alert('Save investment functionality would be implemented here.');
-    // In a real application, this would make an AJAX call to save the investment
-}
-
-function editInvestment(investmentId) {
-    // Placeholder for edit functionality
-    alert('Edit investment functionality for ID ' + investmentId + ' would be implemented here.');
-}
-
-function updateReturns(investmentId) {
-    // Placeholder for update returns functionality
-    const newReturns = prompt('Enter new returns amount:');
-    if (newReturns !== null) {
-        alert('Update returns functionality for ID ' + investmentId + ' with amount ' + newReturns + ' would be implemented here.');
-    }
-}
-
-function deleteInvestment(investmentId) {
-    if (confirm('Are you sure you want to delete this investment record?')) {
-        alert('Delete investment functionality for ID ' + investmentId + ' would be implemented here.');
-    }
-}
-
-// Set current date as default for new investment
-document.addEventListener('DOMContentLoaded', function() {
-    const today = new Date().toISOString().split('T')[0];
-    document.querySelector('input[name="investment_date"]').value = today;
-});
+// No additional JavaScript needed for simplified investment view
 </script>
 {% endblock %}

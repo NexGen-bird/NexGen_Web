@@ -56,6 +56,17 @@ def format_currency(amount):
     """Format amount as Indian currency"""
     return f"₹{amount:,.2f}"
 
+def format_currency_denomination(amount):
+    """Format amount in K, L, Cr denominations"""
+    if amount >= 10000000:  # 1 Crore
+        return f"₹{amount/10000000:.1f}Cr"
+    elif amount >= 100000:  # 1 Lakh
+        return f"₹{amount/100000:.1f}L"
+    elif amount >= 1000:    # 1 Thousand
+        return f"₹{amount/1000:.1f}K"
+    else:
+        return f"₹{amount:,.0f}"
+
 def json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""
     if isinstance(obj, (datetime, date)):

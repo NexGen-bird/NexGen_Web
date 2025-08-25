@@ -34,25 +34,26 @@ class AdmissionForm(FlaskForm):
     submit = SubmitField('Submit')
 
 class TransactionForm(FlaskForm):
-    transaction_type = SelectField('Transaction Type', choices=[('general', 'General'), ('admission', 'Admission')], validators=[DataRequired()])
+    transaction_type = SelectField('Transaction Type', choices=[('general', 'General'), ('admission', 'Admission'), ('investment', 'Investment')], validators=[DataRequired()])
     transaction_date = DateField('Transaction Date', default=date.today, validators=[DataRequired()])
     plan = SelectField('Plan', choices=[
         ('Monthly', 'Monthly'), ('Quarterly', 'Quarterly'), 
         ('Half Yearly', 'Half Yearly'), ('Yearly', 'Yearly'), 
         ('Day', 'Day'), ('Weekend', 'Weekend')
-    ], validators=[DataRequired()])
+    ])
     shifts = MultiCheckboxField('Shifts', choices=[
         ('6am-12pm', '6am - 12pm'), ('12pm-6pm', '12pm - 6pm'),
         ('6pm-12am', '6pm - 12am'), ('12am-6am', '12am - 6am')
     ])
-    start_date = DateField('Start Date', validators=[DataRequired()])
-    end_date = DateField('End Date', validators=[DataRequired()])
-    is_regular = BooleanField('Regular')
+    start_date = DateField('Start Date')
+    end_date = DateField('End Date')
     locker_number = StringField('Locker Number')
     amount = FloatField('Amount', validators=[DataRequired()])
-    discount = FloatField('Discount', default=0)
+    txn_type = SelectField('Txn Type', choices=[('IN', 'IN'), ('OUT', 'OUT')])
     payment_method = SelectField('Payment Method', choices=[
-        ('Cash', 'Cash'), ('Card', 'Card'), 
-        ('UPI', 'UPI'), ('Bank Transfer', 'Bank Transfer')
+        ('Cash', 'Cash'), ('UPI', 'UPI'), ('Partial', 'Partial')
     ], validators=[DataRequired()])
+    cash_amount = FloatField('Cash Amount', default=0)
+    upi_amount = FloatField('UPI Amount', default=0)
+    description = TextAreaField('Description')
     submit = SubmitField('Save Transaction')

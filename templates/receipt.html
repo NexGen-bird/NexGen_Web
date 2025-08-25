@@ -125,16 +125,22 @@
                                         <span>Subtotal:</span>
                                         <span>{{ format_currency(transaction.amount) }}</span>
                                     </div>
-                                    {% if transaction.discount > 0 %}
-                                    <div class="d-flex justify-content-between mb-2 text-success">
-                                        <span>Discount:</span>
-                                        <span>-{{ format_currency(transaction.discount) }}</span>
+                                    {% if transaction.cash_amount > 0 %}
+                                    <div class="d-flex justify-content-between mb-2 text-info">
+                                        <span>Cash Amount:</span>
+                                        <span>{{ format_currency(transaction.cash_amount) }}</span>
+                                    </div>
+                                    {% endif %}
+                                    {% if transaction.upi_amount > 0 %}
+                                    <div class="d-flex justify-content-between mb-2 text-info">
+                                        <span>UPI Amount:</span>
+                                        <span>{{ format_currency(transaction.upi_amount) }}</span>
                                     </div>
                                     {% endif %}
                                     <hr>
                                     <div class="d-flex justify-content-between fw-bold text-primary">
                                         <span>Total Paid:</span>
-                                        <span>{{ format_currency(transaction.final_amount) }}</span>
+                                        <span>{{ format_currency(transaction.amount) }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -152,10 +158,10 @@
                                     Your subscription is active from <strong>{{ transaction.start_date.strftime('%d/%m/%Y') }}</strong> 
                                     to <strong>{{ transaction.end_date.strftime('%d/%m/%Y') }}</strong>
                                 </p>
-                                {% if transaction.is_regular %}
+                                {% if transaction.txn_type == 'IN' %}
                                 <p class="mb-0 mt-2">
-                                    <i class="fas fa-star text-warning me-1"></i>
-                                    <strong>Regular Student Benefits Applied</strong>
+                                    <i class="fas fa-arrow-up text-success me-1"></i>
+                                    <strong>Income Transaction</strong>
                                 </p>
                                 {% endif %}
                             </div>
@@ -238,8 +244,8 @@ function shareViaWhatsApp() {
     const message = `Receipt from NEXGEN Study Centre
     
 Customer: {{ customer.full_name }}
-Amount Paid: {{ format_currency(transaction.final_amount) }}
-Plan: {{ transaction.plan }}
+Amount Paid: {{ format_currency(transaction.amount) }}
+Plan: {{ transaction.plan or 'N/A' }}
 Valid From: {{ transaction.start_date.strftime('%d/%m/%Y') }}
 Valid Till: {{ transaction.end_date.strftime('%d/%m/%Y') }}
 

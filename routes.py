@@ -1,8 +1,8 @@
 from flask import render_template, request, redirect, url_for, flash, session, jsonify
 from app import app, db
-from models import User, Customer, Transaction, Investment
+from models import User, Customer, Transaction, Investment, Locker
 from forms import LoginForm, ForgotPasswordForm, AdmissionForm, TransactionForm
-from utils import create_whatsapp_url, get_whatsapp_receipt_message, get_whatsapp_expiry_reminder, calculate_age, format_currency
+from utils import create_whatsapp_url, get_whatsapp_receipt_message, get_whatsapp_expiry_reminder, calculate_age, format_currency, format_currency_denomination
 from datetime import datetime, date, timedelta
 from sqlalchemy import func, extract
 import json
@@ -90,6 +90,11 @@ def dashboard():
         'Weekend': 35
     }
     
+    # Available lockers
+    total_lockers = 50  # Total number of lockers
+    occupied_lockers = Locker.query.filter_by(is_occupied=True).count()
+    available_lockers = total_lockers - occupied_lockers
+    
     # Expiring subscriptions (next 7 days)
     expiring_date = date.today() + timedelta(days=7)
     expiring_subscriptions = db.session.query(Customer, Transaction).join(Transaction).filter(
@@ -108,10 +113,12 @@ def dashboard():
     return render_template('dashboard.html', 
                          metrics=metrics, 
                          shift_data=shift_data,
+                         available_lockers=available_lockers,
                          expiring_subscriptions=expiring_subscriptions,
                          create_whatsapp_url=create_whatsapp_url,
                          get_whatsapp_expiry_reminder=get_whatsapp_expiry_reminder,
-                         format_currency=format_currency)
+                         format_currency=format_currency,
+                         format_currency_denomination=format_currency_denomination)
 
 @app.route('/admission', methods=['GET', 'POST'])
 def admission():
@@ -158,10 +165,7 @@ def add_transaction(customer_id=None):
         form.transaction_type.data = request.args.get('transaction_type', 'admission')
     
     if request.method == 'POST' and form.validate_on_submit():
-        # Calculate final amount
         amount = form.amount.data or 0
-        discount = form.discount.data or 0
-        final_amount = amount - discount
         
         transaction = Transaction()
         transaction.customer_id = customer_id or request.form.get('customer_id')
@@ -171,12 +175,13 @@ def add_transaction(customer_id=None):
         transaction.shifts = json.dumps(form.shifts.data)
         transaction.start_date = form.start_date.data
         transaction.end_date = form.end_date.data
-        transaction.is_regular = form.is_regular.data
         transaction.locker_number = form.locker_number.data
         transaction.amount = amount
-        transaction.discount = discount
-        transaction.final_amount = final_amount
+        transaction.txn_type = form.txn_type.data
         transaction.payment_method = form.payment_method.data
+        transaction.cash_amount = form.cash_amount.data or 0
+        transaction.upi_amount = form.upi_amount.data or 0
+        transaction.description = form.description.data
         
         db.session.add(transaction)
         db.session.commit()
@@ -259,21 +264,22 @@ def investment_summary():
     if 'user_id' not in session:
         return redirect(url_for('login'))
     
-    investments = Investment.query.all()
+    # Get investment transactions
+    investment_transactions = Transaction.query.filter_by(transaction_type='investment').order_by(Transaction.transaction_date.desc()).all()
     
-    # Calculate totals
-    total_investment = sum(inv.investment_amount for inv in investments)
-    total_returns = sum(inv.returns for inv in investments)
-    net_profit = total_returns - total_investment
+    # Calculate summary for single investor view
+    total_investment = sum(t.amount for t in investment_transactions if t.txn_type == 'IN')
+    total_returns = sum(t.amount for t in investment_transactions if t.txn_type == 'OUT')
+    transaction_count = len(investment_transactions)
     
     summary = {
         'total_investment': total_investment,
         'total_returns': total_returns,
-        'net_profit': net_profit
+        'transaction_count': transaction_count
     }
     
     return render_template('investment_summary.html', 
-                         investments=investments, 
+                         investment_transactions=investment_transactions, 
                          summary=summary,
                          format_currency=format_currency)
 
@@ -288,7 +294,7 @@ def receipt(transaction_id):
     # Generate WhatsApp receipt message
     whatsapp_message = get_whatsapp_receipt_message(
         customer.full_name,
-        transaction.final_amount,
+        transaction.amount,
         transaction.plan,
         transaction.start_date,
         transaction.end_date
@@ -347,6 +353,37 @@ def dashboard_data():
         'expense_data': expense_data,
         'admission_data': admission_data
     })
+
+# API endpoint for locker information
+@app.route('/api/lockers')
+def locker_info():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    # Get all lockers with their assignment info
+    lockers = []
+    for i in range(1, 51):  # Assuming 50 lockers numbered 1-50
+        locker_num = f"L{i:03d}"
+        locker = Locker.query.filter_by(locker_number=locker_num).first()
+        
+        if locker and locker.is_occupied:
+            lockers.append({
+                'number': locker_num,
+                'status': 'Occupied',
+                'customer': locker.customer.full_name if locker.customer else 'Unknown',
+                'contact': locker.customer.contact_number if locker.customer else '',
+                'assigned_date': locker.assigned_date.strftime('%d/%m/%Y') if locker.assigned_date else ''
+            })
+        else:
+            lockers.append({
+                'number': locker_num,
+                'status': 'Available',
+                'customer': '',
+                'contact': '',
+                'assigned_date': ''
+            })
+    
+    return jsonify({'lockers': lockers})
 
 # Create default admin user
 def create_admin():

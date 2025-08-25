@@ -3,6 +3,32 @@
 {% block title %}Add Transaction - NEXGEN Study Centre{% endblock %}
 
 {% block content %}
+<!-- Information Modal -->
+<div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-gradient-primary text-white">
+                <h5 class="modal-title" id="infoModalLabel">
+                    <i class="fas fa-info-circle me-2"></i>Transaction Information
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-lightbulb me-2"></i>Quick Guide:</h6>
+                    <ul class="mb-0">
+                        <li><strong>General:</strong> Regular membership transactions</li>
+                        <li><strong>Admission:</strong> New student enrollments</li>
+                        <li><strong>Investment:</strong> Partner investment transactions</li>
+                        <li><strong>Txn Type:</strong> IN for income, OUT for expenses</li>
+                        <li><strong>Partial Payment:</strong> Split between Cash and UPI amounts</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-lg-10">
@@ -93,14 +119,12 @@
                                 {{ form.end_date(class="form-control", required=true) }}
                             </div>
 
-                            <!-- Regular Checkbox -->
+                            <!-- Txn Type -->
                             <div class="col-md-6">
-                                <div class="form-check mt-4">
-                                    {{ form.is_regular(class="form-check-input") }}
-                                    <label for="{{ form.is_regular.id }}" class="form-check-label fw-semibold">
-                                        <i class="fas fa-check-circle me-1 text-primary"></i>Regular Student
-                                    </label>
-                                </div>
+                                <label for="{{ form.txn_type.id }}" class="form-label fw-semibold">
+                                    <i class="fas fa-exchange-alt me-1 text-primary"></i>Txn Type
+                                </label>
+                                {{ form.txn_type(class="form-select") }}
                             </div>
 
                             <!-- Locker Number -->
@@ -112,27 +136,11 @@
                             </div>
 
                             <!-- Amount -->
-                            <div class="col-md-4">
+                            <div class="col-md-12">
                                 <label for="{{ form.amount.id }}" class="form-label fw-semibold">
                                     <i class="fas fa-rupee-sign me-1 text-primary"></i>Amount *
                                 </label>
-                                {{ form.amount(class="form-control", required=true, step="0.01", onchange="calculateFinalAmount()") }}
-                            </div>
-
-                            <!-- Discount -->
-                            <div class="col-md-4">
-                                <label for="{{ form.discount.id }}" class="form-label fw-semibold">
-                                    <i class="fas fa-percentage me-1 text-primary"></i>Discount
-                                </label>
-                                {{ form.discount(class="form-control", step="0.01", onchange="calculateFinalAmount()") }}
-                            </div>
-
-                            <!-- Final Amount (Auto-calculated) -->
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">
-                                    <i class="fas fa-calculator me-1 text-primary"></i>Final Amount
-                                </label>
-                                <input type="text" class="form-control bg-light" id="finalAmountDisplay" readonly placeholder="Auto-calculated">
+                                {{ form.amount(class="form-control", required=true, step="0.01") }}
                             </div>
 
                             <!-- Payment Method -->
@@ -140,7 +148,31 @@
                                 <label for="{{ form.payment_method.id }}" class="form-label fw-semibold">
                                     <i class="fas fa-credit-card me-1 text-primary"></i>Payment Method *
                                 </label>
-                                {{ form.payment_method(class="form-select", required=true) }}
+                                {{ form.payment_method(class="form-select", required=true, onchange="togglePartialPayment()") }}
+                            </div>
+
+                            <!-- Cash Amount (for partial payment) -->
+                            <div class="col-md-3" id="cashAmountDiv" style="display: none;">
+                                <label for="{{ form.cash_amount.id }}" class="form-label fw-semibold">
+                                    <i class="fas fa-money-bill me-1 text-primary"></i>Cash Amount
+                                </label>
+                                {{ form.cash_amount(class="form-control", step="0.01") }}
+                            </div>
+
+                            <!-- UPI Amount (for partial payment) -->
+                            <div class="col-md-3" id="upiAmountDiv" style="display: none;">
+                                <label for="{{ form.upi_amount.id }}" class="form-label fw-semibold">
+                                    <i class="fas fa-mobile-alt me-1 text-primary"></i>UPI Amount
+                                </label>
+                                {{ form.upi_amount(class="form-control", step="0.01") }}
+                            </div>
+
+                            <!-- Description -->
+                            <div class="col-12">
+                                <label for="{{ form.description.id }}" class="form-label fw-semibold">
+                                    <i class="fas fa-comment me-1 text-primary"></i>Description
+                                </label>
+                                {{ form.description(class="form-control", rows="3") }}
                             </div>
 
                             <!-- Submit Button -->
@@ -165,8 +197,43 @@
 <script>
 function toggleFields() {
     const transactionType = document.getElementById('transaction_type').value;
-    // Add logic to enable/disable fields based on transaction type
-    console.log('Transaction type changed to:', transactionType);
+    const planField = document.getElementById('plan');
+    const shiftsDiv = document.querySelector('.col-md-6:has(.border)');
+    const startDateField = document.getElementById('start_date');
+    const endDateField = document.getElementById('end_date');
+    const customerSelect = document.querySelector('select[name="customer_id"]');
+    
+    if (transactionType === 'investment') {
+        // Hide customer-related fields for investment
+        if (customerSelect) customerSelect.closest('.col-12').style.display = 'none';
+        planField.closest('.col-md-6').style.display = 'none';
+        shiftsDiv.style.display = 'none';
+        startDateField.closest('.col-md-6').style.display = 'none';
+        endDateField.closest('.col-md-6').style.display = 'none';
+        document.getElementById('locker_number').closest('.col-md-6').style.display = 'none';
+    } else {
+        // Show fields for admission/general
+        if (customerSelect) customerSelect.closest('.col-12').style.display = 'block';
+        planField.closest('.col-md-6').style.display = 'block';
+        shiftsDiv.style.display = 'block';
+        startDateField.closest('.col-md-6').style.display = 'block';
+        endDateField.closest('.col-md-6').style.display = 'block';
+        document.getElementById('locker_number').closest('.col-md-6').style.display = 'block';
+    }
+}
+
+function togglePartialPayment() {
+    const paymentMethod = document.getElementById('payment_method').value;
+    const cashDiv = document.getElementById('cashAmountDiv');
+    const upiDiv = document.getElementById('upiAmountDiv');
+    
+    if (paymentMethod === 'Partial') {
+        cashDiv.style.display = 'block';
+        upiDiv.style.display = 'block';
+    } else {
+        cashDiv.style.display = 'none';
+        upiDiv.style.display = 'none';
+    }
 }
 
 function calculateEndDate() {
@@ -202,18 +269,15 @@ function calculateEndDate() {
     }
 }
 
-function calculateFinalAmount() {
-    const amount = parseFloat(document.getElementById('amount').value) || 0;
-    const discount = parseFloat(document.getElementById('discount').value) || 0;
-    const finalAmount = amount - discount;
-    
-    document.getElementById('finalAmountDisplay').value = '₹' + finalAmount.toFixed(2);
-}
-
-// Initialize calculations on page load
+// Initialize page on load
 document.addEventListener('DOMContentLoaded', function() {
+    // Show info modal on page load
+    const infoModal = new bootstrap.Modal(document.getElementById('infoModal'));
+    infoModal.show();
+    
     calculateEndDate();
-    calculateFinalAmount();
+    toggleFields();
+    togglePartialPayment();
 });
 </script>
 {% endblock %}

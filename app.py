@@ -31,7 +31,8 @@ with app.app_context():
     import models
     import routes
     
-    # Create all tables
+    # Drop and recreate all tables (for development)
+    db.drop_all()
     db.create_all()
     
     # Create admin user after tables are created
