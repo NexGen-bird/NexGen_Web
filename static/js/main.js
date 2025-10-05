@@ -47,13 +47,13 @@ function setupEventListeners() {
     });
 
     // Auto-hide alerts after 5 seconds
-    const alerts = document.querySelectorAll('.alert:not(.alert-permanent)');
-    alerts.forEach(alert => {
-        setTimeout(() => {
-            const bsAlert = new bootstrap.Alert(alert);
-            bsAlert.close();
-        }, 5000);
-    });
+    // const alerts = document.querySelectorAll('.alert:not(.alert-permanent)');
+    // alerts.forEach(alert => {
+    //     setTimeout(() => {
+    //         const bsAlert = new bootstrap.Alert(alert);
+    //         bsAlert.close();
+    //     }, 5000);
+    // });
 
     // WhatsApp integration helpers
     setupWhatsAppIntegration();
@@ -102,9 +102,9 @@ function setupFormValidation() {
             let value = this.value.replace(/[^\d+]/g, '');
             
             // Format Indian mobile numbers
-            if (value.length === 10 && !value.startsWith('+')) {
-                value = '+91' + value;
-            }
+            // if (value.length === 10 && !value.startsWith('+')) {
+            //     value = '+91' + value;
+            // }
             
             this.value = value;
         });
@@ -113,8 +113,8 @@ function setupFormValidation() {
 
 // WhatsApp Integration Functions
 function setupWhatsAppIntegration() {
-    // Add WhatsApp floating button if not present
-    addWhatsAppFloat();
+    // Add WhatsApp floating button if not presentfpop
+    // addWhatsAppFloat();
     
     // Setup WhatsApp share buttons
     const whatsappButtons = document.querySelectorAll('.btn-whatsapp, [data-whatsapp]');
@@ -134,20 +134,20 @@ function setupWhatsAppIntegration() {
     });
 }
 
-function addWhatsAppFloat() {
-    // Add floating WhatsApp button for general inquiries
-    const whatsappFloat = document.createElement('a');
-    whatsappFloat.href = 'https://wa.me/919999999999?text=Hello%20NEXGEN%20Study%20Centre,%20I%20need%20assistance.';
-    whatsappFloat.target = '_blank';
-    whatsappFloat.className = 'whatsapp-float';
-    whatsappFloat.innerHTML = '<i class="fab fa-whatsapp"></i>';
-    whatsappFloat.title = 'Chat with us on WhatsApp';
+// function addWhatsAppFloat() {
+//     // Add floating WhatsApp button for general inquiries
+//     const whatsappFloat = document.createElement('a');
+//     whatsappFloat.href = 'https://wa.me/919594897959?text=Hello%20NEXGEN%20Study%20Centre,%20I%20need%20assistance.';
+//     whatsappFloat.target = '_blank';
+//     whatsappFloat.className = 'whatsapp-float';
+//     whatsappFloat.innerHTML = '<i class="fab fa-whatsapp"></i>';
+//     whatsappFloat.title = 'Chat with us on WhatsApp';
     
-    // Only add if not already present
-    if (!document.querySelector('.whatsapp-float')) {
-        document.body.appendChild(whatsappFloat);
-    }
-}
+//     // Only add if not already present
+//     if (!document.querySelector('.whatsapp-float')) {
+//         document.body.appendChild(whatsappFloat);
+//     }
+// }
 
 // Utility Functions
 function formatCurrency(amount) {

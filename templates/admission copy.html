@@ -16,16 +16,11 @@
                         
                         <div class="row g-3">
                             <!-- Contact Number -->
-                            <div class="col-md-6 position-relative">
+                            <div class="col-md-6">
                                 <label for="{{ form.contact_number.id }}" class="form-label fw-semibold">
                                     <i class="fas fa-phone me-1 text-primary"></i>Contact Number *
                                 </label>
-                                {{ form.contact_number(class="form-control", required=true, id="contactNumber") }}
-                                <!-- Dropdown container -->
-                                <div id="contactDropdown" 
-                                     class="list-group position-absolute w-100 shadow-sm" 
-                                     style="z-index: 1000; display: none;">
-                                </div>
+                                {{ form.contact_number(class="form-control", required=true) }}
                                 {% if form.contact_number.errors %}
                                     <div class="text-danger small mt-1">
                                         {% for error in form.contact_number.errors %}
@@ -36,23 +31,11 @@
                             </div>
 
                             <!-- Full Name -->
-                            <div class="col-md-6 position-relative">
+                            <div class="col-md-6">
                                 <label for="{{ form.full_name.id }}" class="form-label fw-semibold">
-                                    <i class="fas fa-user me-1 text-primary"></i> Full Name *
+                                    <i class="fas fa-user me-1 text-primary"></i>Full Name *
                                 </label>
-                                <input type="text" 
-                                       id="full_name" 
-                                       name="full_name" 
-                                       class="form-control" 
-                                       required 
-                                       autocomplete="off">
-                            
-                                <!-- Dropdown container -->
-                                <div id="nameDropdown" 
-                                     class="list-group position-absolute w-100 shadow-sm" 
-                                     style="z-index: 1000; display: none;">
-                                </div>
-                            
+                                {{ form.full_name(class="form-control", required=true) }}
                                 {% if form.full_name.errors %}
                                     <div class="text-danger small mt-1">
                                         {% for error in form.full_name.errors %}
@@ -61,14 +44,13 @@
                                     </div>
                                 {% endif %}
                             </div>
-                            
 
                             <!-- Date of Birth -->
                             <div class="col-md-6">
                                 <label for="{{ form.date_of_birth.id }}" class="form-label fw-semibold">
                                     <i class="fas fa-calendar me-1 text-primary"></i>Date of Birth *
                                 </label>
-                                {{ form.date_of_birth(class="form-control", id="date_of_birth", required=true, onchange="calculateAge()") }}
+                                {{ form.date_of_birth(class="form-control", required=true, onchange="calculateAge()") }}
                                 {% if form.date_of_birth.errors %}
                                     <div class="text-danger small mt-1">
                                         {% for error in form.date_of_birth.errors %}
@@ -91,7 +73,7 @@
                                 <label for="{{ form.gender.id }}" class="form-label fw-semibold">
                                     <i class="fas fa-venus-mars me-1 text-primary"></i>Gender *
                                 </label>
-                                {{ form.gender(class="form-select", required=true, id="gender") }}
+                                {{ form.gender(class="form-select", required=true) }}
                                 {% if form.gender.errors %}
                                     <div class="text-danger small mt-1">
                                         {% for error in form.gender.errors %}
@@ -106,7 +88,7 @@
                                 <label for="{{ form.email.id }}" class="form-label fw-semibold">
                                     <i class="fas fa-envelope me-1 text-primary"></i>Email Address *
                                 </label>
-                                {{ form.email(class="form-control", required=true, type="email", id="email") }}
+                                {{ form.email(class="form-control", required=true, type="email") }}
                                 {% if form.email.errors %}
                                     <div class="text-danger small mt-1">
                                         {% for error in form.email.errors %}
@@ -121,7 +103,7 @@
                                 <label for="{{ form.study_option.id }}" class="form-label fw-semibold">
                                     <i class="fas fa-graduation-cap me-1 text-primary"></i>Study Option *
                                 </label>
-                                {{ form.study_option(class="form-select", required=true,id="study_option") }}
+                                {{ form.study_option(class="form-select", required=true) }}
                                 {% if form.study_option.errors %}
                                     <div class="text-danger small mt-1">
                                         {% for error in form.study_option.errors %}
@@ -136,7 +118,7 @@
                                 <label for="{{ form.education_details.id }}" class="form-label fw-semibold">
                                     <i class="fas fa-book me-1 text-primary"></i>Education Details
                                 </label>
-                                {{ form.education_details(class="form-control", rows="2",id="education_details") }}
+                                {{ form.education_details(class="form-control", rows="3") }}
                                 {% if form.education_details.errors %}
                                     <div class="text-danger small mt-1">
                                         {% for error in form.education_details.errors %}
@@ -151,7 +133,7 @@
                                 <label for="{{ form.address.id }}" class="form-label fw-semibold">
                                     <i class="fas fa-map-marker-alt me-1 text-primary"></i>Address *
                                 </label>
-                                {{ form.address(class="form-control", rows="3", required=true, id="address") }}
+                                {{ form.address(class="form-control", rows="3", required=true) }}
                                 {% if form.address.errors %}
                                     <div class="text-danger small mt-1">
                                         {% for error in form.address.errors %}
@@ -161,7 +143,20 @@
                                 {% endif %}
                             </div>
 
-                            
+                            <!-- Note -->
+                            <div class="col-12">
+                                <label for="{{ form.note.id }}" class="form-label fw-semibold">
+                                    <i class="fas fa-sticky-note me-1 text-primary"></i>Note
+                                </label>
+                                {{ form.note(class="form-control", rows="2") }}
+                                {% if form.note.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.note.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
 
                             <!-- Submit Button -->
                             <div class="col-12 text-center">
@@ -195,151 +190,5 @@ function calculateAge() {
         document.getElementById('ageDisplay').value = age + ' years';
     }
 }
-
 </script>
-<script>
-    function fetchStudentDetails(query) {
-        // Detect if input is a number (contact) or string (name)
-        let url = "";
-        if (/^\d+$/.test(query)) {
-            // Only digits → contact
-            url = `/get_student_details?contact=${encodeURIComponent(query)}`;
-        } else {
-            // Otherwise → name
-            url = `/get_student_details?name=${encodeURIComponent(query)}`;
-        }
-
-        fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                if (data) {
-                    // Fill all fields
-                    document.querySelector('input[id="full_name"]').value = data.full_name || "";
-                    document.querySelector('input[id="contactNumber"]').value = data.contact_number || "";
-                    document.querySelector('input[id="date_of_birth"]').value = data.dob || "";
-                    document.querySelector('input[id="email"]').value = data.email || "";
-                    document.querySelector('textarea[id="address"]').value = data.address || "";
-                    document.querySelector('textarea[id="education_details"]').value = data.education_details || "";
-
-                    // For gender select
-                    if (data.gender) {
-                        let genderSelect = document.querySelector('select[id="gender"]');
-                        if (genderSelect) genderSelect.value = data.gender;
-                    }
-
-                    // For study option select
-                    // if (data.study_option) {
-                    //     let studySelect = document.querySelector('select[id="study_option"]');
-                    //     if (studySelect) studySelect.value = data.study_option;
-                    // }
-                    // For study option select
-                    if (data.study_option) {
-                        let studySelect = document.querySelector('select[id="study_option"]');
-                        if (studySelect) {
-                            // Check if value exists in the options
-                            let exists = Array.from(studySelect.options).some(
-                                option => option.value === data.study_option
-                            );
-
-                            if (exists) {
-                                studySelect.value = data.study_option;
-                            } else {
-                                studySelect.value = "Others"; // fallback option
-                            }
-                        }
-                    }
-                    // Trigger age calculation if DOB present
-                    if (data.dob) calculateAge();
-                }
-            })
-            .catch(err => console.error("Error fetching student details:", err));
-    }
-
-    document.addEventListener("DOMContentLoaded", function () {
-        const input = document.getElementById("full_name");
-        const dropdown = document.getElementById("nameDropdown");
-    
-        input.addEventListener("input", function () {
-            let query = input.value.trim();
-            if (query.length < 2) {
-                dropdown.style.display = "none";
-                return;
-            }
-    
-            fetch(`/autocomplete/names?q=${encodeURIComponent(query)}`)
-                .then(res => res.json())
-                .then(data => {
-                    dropdown.innerHTML = "";
-                    if (data.length > 0) {
-                        data.forEach(name => {
-                            let item = document.createElement("a");
-                            item.classList.add("list-group-item", "list-group-item-action");
-                            item.textContent = name;
-                            item.addEventListener("click", function () {
-                                input.value = name;
-                                dropdown.style.display = "none";
-                                fetchStudentDetails(name);
-                            });
-                            dropdown.appendChild(item);
-                        });
-                        dropdown.style.display = "block";
-                    } else {
-                        dropdown.style.display = "none";
-                    }
-                });
-        });
-    
-        // Hide dropdown if clicked outside
-        document.addEventListener("click", function (e) {
-            if (!dropdown.contains(e.target) && e.target !== input) {
-                dropdown.style.display = "none";
-            }
-        });
-    });
-</script>
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const input = document.getElementById("contactNumber");
-        const dropdown = document.getElementById("contactDropdown");
-    
-        input.addEventListener("input", function () {
-            let query = input.value.trim();
-            if (query.length < 2) {
-                dropdown.style.display = "none";
-                return;
-            }
-    
-            fetch(`/autocomplete/contacts?q=${encodeURIComponent(query)}`)
-                .then(res => res.json())
-                .then(data => {
-                    dropdown.innerHTML = "";
-                    if (data.length > 0) {
-                        data.forEach(name => {
-                            let item = document.createElement("a");
-                            item.classList.add("list-group-item", "list-group-item-action");
-                            item.textContent = name;
-                            item.addEventListener("click", function () {
-                                input.value = name;
-                                dropdown.style.display = "none";
-                                fetchStudentDetails(name);
-                            });
-                            dropdown.appendChild(item);
-                        });
-                        dropdown.style.display = "block";
-                    } else {
-                        dropdown.style.display = "none";
-                    }
-                });
-        });
-    
-        // Hide dropdown if clicked outside
-        document.addEventListener("click", function (e) {
-            if (!dropdown.contains(e.target) && e.target !== input) {
-                dropdown.style.display = "none";
-            }
-        });
-    });
-</script>
-
-    
 {% endblock %}

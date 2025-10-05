@@ -13,7 +13,7 @@
     --teal-color: #20b2aa;
     
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, #20b2aa 0%, #32cd32 50%, #ff69b4 100%);
+    --gradient-primary: linear-gradient(135deg, #37b7c8 25%, #4fe378 50%, #e5f455 100%);
     --gradient-secondary: linear-gradient(135deg, #32cd32 0%, #20b2aa 100%);
     
     /* Shadows */
@@ -28,7 +28,12 @@ body {
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     min-height: 100vh;
 }
-
+.han_bg{
+    color: var(--gradient-primary);
+}
+.bg_abhi{
+    color: var(--accent-color);
+}
 /* Gradient Text */
 .text-gradient-primary {
     background: var(--gradient-primary);
@@ -46,10 +51,16 @@ body {
 .bg-gradient-secondary {
     background: var(--gradient-secondary) !important;
 }
-
+.bg-gradient-warning{
+    background: var(--gradient-secondary) !important;
+}
+.bg-light{
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    /* var(--teal-color) !important; */
+}
 /* Custom Button Styles */
 .btn-gradient-primary {
-    background: var(--gradient-primary);
+    background: var(--primary-color);
     border: none;
     color: white;
     font-weight: 600;
@@ -61,6 +72,8 @@ body {
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
     color: white;
+    background: var(--primary-dark);
+    /* color: white; */
 }
 
 /* WhatsApp Button */
@@ -179,7 +192,7 @@ body {
 .sidebar .nav-link:hover {
     background-color: rgba(255,255,255,0.1);
     border-left-color: var(--accent-color);
-    color: white !important;
+    color: var(--accent-color) !important;
 }
 
 .main-content {
@@ -199,7 +212,7 @@ body {
         transition: transform 0.3s ease;
     }
     
-    .sidebar.show {
+    .sidebar.active {
         transform: translateX(0);
     }
     
@@ -207,6 +220,7 @@ body {
         margin-left: 0;
     }
 }
+
 
 /* Card Enhancements */
 .card {

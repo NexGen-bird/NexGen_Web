@@ -1,0 +1,4 @@
+nexgenEnv/
+.local/
+.replit
+*.pyc

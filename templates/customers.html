@@ -36,7 +36,7 @@
                     </div>
                 </div>
                 <div class="card-body p-0">
-                    {% if customers.items %}
+                    {% if customers %}
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
                             <thead class="table-light">
@@ -44,98 +44,113 @@
                                     <th>Customer Details</th>
                                     <th>Contact Info</th>
                                     <th>Study Option</th>
-                                    <th>Latest Expiry</th>
+                                    <th>Start Date</th>
+                                    <th>Expiry</th>
                                     <th>Status</th>
-                                    <th>Total Transactions</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for customer_data in customers.items %}
-                                {% set customer = customer_data[0] %}
-                                {% set latest_expiry = customer_data[1] %}
-                                {% set transaction_count = customer_data[2] %}
+                                {% for customer_data in customers %}
+                                <!-- {% set customer = customer_data %}
+                                {% set latest_expiry = customer_data['planexpirydate'] %}
+                                {% set transaction_count = 20 %} -->
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <div class="customer-avatar me-3">
                                                 <div class="bg-gradient-primary rounded-circle d-flex align-items-center justify-content-center" 
                                                      style="width: 40px; height: 40px;">
-                                                    <span class="text-white fw-bold">{{ customer.full_name[0].upper() }}</span>
+                                                    <!-- <img class="rounded-circle d-flex align-items-center justify-content-center" src="static/images/male.jpg"> -->
+                                                    <span class="text-white fw-bold">{{ customer['name'].upper()[0] }}</span>
                                                 </div>
                                             </div>
                                             <div>
-                                                <div class="fw-semibold">{{ customer.full_name }}</div>
-                                                <small class="text-muted">Age: {{ customer.age }} years</small>
+                                                <div class="fw-semibold">{{ customer['name'] }}</div>
+                                                <small class="text-muted">Joined On: {{ customer['created_at']| format_date }}</small>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
                                         <div>
-                                            <div><i class="fas fa-phone text-primary me-1"></i>{{ customer.contact_number }}</div>
-                                            <div><i class="fas fa-envelope text-primary me-1"></i>{{ customer.email }}</div>
+                                            <div><i class="fas fa-phone text-primary me-1"></i>{{ customer['phone_number'] }}</div>
+                                            <div><i class="fas fa-envelope text-primary me-1"></i>{{ customer['email']}}</div>
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="badge bg-info">{{ customer.study_option }}</span>
+                                        {% set text = customer.joining_for %}
+                                        {% if text|length > 23 %}
+                                            <span class="badge bg-info" 
+                                                  data-bs-toggle="tooltip" 
+                                                  data-bs-placement="top" 
+                                                  title="{{ text }}">
+                                                {{ text[:23] ~ '...' }}
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-info">{{ text }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">{{ customer.planstartdate | format_date }}</span>
                                     </td>
                                     <td>
                                         {% if latest_expiry %}
-                                            {% set expiry_date = latest_expiry %}
-                                            {% if expiry_date >= date.today() %}
-                                                <span class="badge bg-success">{{ expiry_date.strftime('%d/%m/%Y') }}</span>
+                                            {% set expiry_date = customer_data['planexpirydate'] %}
+                                            {% if customer_data['isactive'] == 1 %}
+                                                <span class="badge bg-primary">{{ expiry_date | format_date }}</span>
                                             {% else %}
-                                                <span class="badge bg-danger">{{ expiry_date.strftime('%d/%m/%Y') }}</span>
+                                                <span class="badge bg-danger">{{ expiry_date | format_date }}</span>
                                             {% endif %}
                                         {% else %}
                                             <span class="badge bg-secondary">No subscriptions</span>
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if latest_expiry and latest_expiry >= date.today() %}
+                                        {% if customer_data['isactive'] == 1 %}
                                             <span class="badge bg-success">Active</span>
-                                        {% elif latest_expiry %}
-                                            <span class="badge bg-danger">Expired</span>
                                         {% else %}
-                                            <span class="badge bg-warning">New</span>
+                                            <span class="badge bg-danger">Expired</span>
+                                            <!-- <span class="badge bg-warning">New</span> -->
                                         {% endif %}
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-primary">{{ transaction_count }}</span>
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
                                             <!-- WhatsApp Button with dynamic message -->
-                                            {% if latest_expiry and latest_expiry >= date.today() %}
+                                            {% if customer_data['isactive'] == 1 %}
                                                 <!-- Active customer - general message -->
-                                                <a href="{{ create_whatsapp_url(customer.contact_number, 'Hello ' + customer.full_name + ', Hope you are doing well at NEXGEN Study Centre! Let us know if you need any assistance.') }}" 
+                                                <a href="{{ create_whatsapp_url(
+                                                    customer.phone_number,
+                                                    'Hello ' + customer.name + ',\n\n'
+                                                    'We’ve launched the official NexGen Self Study Centre WhatsApp Channel 🎉\n\n'
+                                                    ' Follow our channel to get:\n'
+                                                    '• Important announcements\n'
+                                                    '• Exclusive offers & discounts\n'
+                                                    '• Motivational content for your self-study journey \n\n'
+                                                    '🔗 Join here: https://whatsapp.com/channel/0029VbB8n2JA89Mm5tQHO43P'
+                                                ) }}" 
                                                    class="btn btn-whatsapp" target="_blank" title="WhatsApp">
-                                                    <i class="fab fa-whatsapp"></i>
+                                                   <i class="fab fa-whatsapp"></i>
                                                 </a>
-                                            {% elif latest_expiry %}
+                                            
+                                            {% else %}
                                                 <!-- Expired customer - renewal message -->
-                                                <a href="{{ create_whatsapp_url(customer.contact_number, get_whatsapp_expiry_reminder(customer.full_name, 'expired')) }}" 
+                                                <a href="{{ create_whatsapp_url(customer.phone_number, get_whatsapp_expiry_reminder(customer.name, 'expired')) }}" 
                                                    class="btn btn-whatsapp" target="_blank" title="Renewal Reminder">
                                                     <i class="fab fa-whatsapp"></i>
                                                 </a>
-                                            {% else %}
-                                                <!-- New customer - welcome message -->
-                                                <a href="{{ create_whatsapp_url(customer.contact_number, 'Dear ' + customer.full_name + ', Welcome to NEXGEN Study Centre! We are excited to have you join our learning community.') }}" 
-                                                   class="btn btn-whatsapp" target="_blank" title="Welcome Message">
-                                                    <i class="fab fa-whatsapp"></i>
-                                                </a>
+                                                
                                             {% endif %}
                                             
                                             <a href="{{ url_for('add_transaction', customer_id=customer.id) }}" 
                                                class="btn btn-outline-success" title="Add Transaction">
                                                 <i class="fas fa-plus-circle"></i>
                                             </a>
-                                            <button class="btn btn-outline-primary" onclick="viewCustomerDetails({{ customer.id }})" title="View Details">
+                                            <button class="btn btn-outline-primary" onclick="viewCustomerDetails('{{ customer.id }}')" title="View Details">
                                                 <i class="fas fa-eye"></i>
                                             </button>
-                                            <button class="btn btn-outline-info" onclick="editCustomer({{ customer.id }})" title="Edit">
+                                            <!-- <button class="btn btn-outline-info" onclick="editCustomer('{{ customer.id }}')" title="Edit">
                                                 <i class="fas fa-edit"></i>
-                                            </button>
+                                            </button> -->
                                         </div>
                                     </td>
                                 </tr>
@@ -145,7 +160,7 @@
                     </div>
 
                     <!-- Pagination -->
-                    {% if customers.pages > 1 %}
+                    {% if customers == 1 %}
                     <div class="card-footer">
                         <nav aria-label="Customer pagination">
                             <ul class="pagination justify-content-center mb-0">
@@ -197,6 +212,25 @@
         </div>
     </div>
 </div>
+<!-- Customer Profile Modal -->
+<div class="modal fade" id="customerProfileModal" tabindex="-1" aria-labelledby="customerProfileLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-gradient-primary text-white">
+          <h5 class="modal-title" id="customerProfileLabel"><i class="fas fa-user me-2"></i>Customer Profile</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="customerProfileContent">
+          <div class="text-center">
+            <div class="spinner-border text-info" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading profile...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock %}
 
 {% block extra_js %}
@@ -222,8 +256,39 @@ function filterCustomers() {
 }
 
 function viewCustomerDetails(customerId) {
-    // Placeholder for view details functionality
-    alert('Customer details view for customer ' + customerId + ' would be implemented here.');
+    const modal = new bootstrap.Modal(document.getElementById('customerProfileModal'));
+    modal.show();
+
+    fetch(`/api/customer/${customerId}`)
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById("customerProfileContent");
+            container.innerHTML = `
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        <img src="${data.profile_image || '/static/images/default-profile.png'}" 
+                             alt="Profile Picture" class="img-fluid rounded-circle mb-3" width="120">
+                        <h5>${data.name}</h5>
+                        <p class="text-muted">${data.plan}</p>
+                    </div>
+                    <div class="col-md-8">
+                        <table class="table table-bordered">
+                            <tr><th>Phone</th><td>${data.phone_number}</td></tr>
+                            <tr><th>Email</th><td>${data.email || '-'}</td></tr>
+                            <tr><th>DOB</th><td>${data.dob || '-'}</td></tr>
+                            <tr><th>Education</th><td>${data.education || '-'}</td></tr>
+                            <tr><th>Expiry</th><td>${data.planexpirydate}</td></tr>
+                            <tr><th>Address</th><td>${data.address || '-'}</td></tr>
+                        </table>
+                    </div>
+                </div>
+            `;
+        })
+        .catch(error => {
+            document.getElementById("customerProfileContent").innerHTML =
+                '<div class="alert alert-danger">Error loading profile</div>';
+        });
+
 }
 
 function editCustomer(customerId) {

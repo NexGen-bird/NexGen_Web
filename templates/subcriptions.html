@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Transactions - NEXGEN Study Centre{% endblock %}
+{% block title %}Subcription - NEXGEN Study Centre{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -8,10 +8,10 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="text-gradient-primary fw-bold">
-                    <i class="fas fa-receipt me-2"></i>Transaction History
+                    <i class="fas fa-receipt me-2"></i>Subcription
                 </h1>
-                <a href="{{ url_for('add_transaction') }}" class="btn btn-gradient-primary">
-                    <i class="fas fa-plus me-2"></i>Add Transaction
+                <a href="{{ url_for('admission') }}" class="btn btn-gradient-primary">
+                    <i class="fas fa-plus me-2"></i>Add Subcription
                 </a>
             </div>
         </div>
@@ -23,11 +23,11 @@
                 <div class="card-header bg-light">
                     <div class="row align-items-center">
                         <div class="col-md-6">
-                            <h5 class="mb-0"><i class="fas fa-list me-2"></i>All Transactions</h5>
+                            <h5 class="mb-0"><i class="fas fa-list me-2"></i>All Subcriptions</h5>
                         </div>
                         <div class="col-md-6">
                             <div class="d-flex gap-2">
-                                <input type="text" class="form-control" placeholder="Search transactions..." id="searchInput">
+                                <input type="text" class="form-control" placeholder="Search Subcriptions..." id="searchInput">
                                 <button class="btn btn-outline-primary" onclick="filterTransactions()">
                                     <i class="fas fa-search"></i>
                                 </button>
@@ -41,67 +41,51 @@
                         <table class="table table-hover mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Date</th>
-                                    <th>Transaction from</th>
-                                    <th>Type</th>
-                                    <th>Plan</th>
-                                    <th>Amount</th>
-                                    <th>Payment Method</th>
-                                    <th>Transaction Made to</th>
-                                    <th>Summary</th>
-                                    <th>Receipt</th>
+                                    <th>Name</th>
+                                    <th>Plan Type</th>
+                                    <th>Shift</th>
+                                    <th>Plan Start Date</th>
+                                    <th>Plan End Date</th>
+                                    <th>Locker No.</th>
+                                    <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for transaction in transactions %}
                                 <tr>
-                                    <td>{{ transaction.transaction_date | format_date}}</td>
                                     <td>
                                         <div class="d-flex align-items-center">
+                                            <div class="customer-avatar me-3">
+                                                <div class="bg-gradient-primary rounded-circle d-flex align-items-center justify-content-center" 
+                                                     style="width: 40px; height: 40px;">
+                                                    <!-- <img class="rounded-circle d-flex align-items-center justify-content-center" src="static/images/male.jpg"> -->
+                                                    <span class="text-white fw-bold">{{ transaction.name.upper()[0] }}</span>
+                                                </div>
+                                            </div>
                                             <div>
                                                 <div class="fw-semibold">{{ transaction.name }}</div>
-                                                <small class="text-muted">{{ '-' if transaction.receipt_id==None else transaction.receipt_id }}</small>
+                                                <small class="text-muted">{{ '-' if transaction.phone_number==None else transaction.phone_number }}</small>
                                             </div>
                                         </div>
                                     </td>
+                                    
+                                    
                                     <td>
                                         <span class="badge bg-{{ 'primary' if transaction.transaction_for == 'Admission' else 'info' }}">
-                                            {{ transaction.transaction_for }}
+                                            {{ {1:"Day",2:"Monthly",3:"Querterly",4:"Half Yearly",5:"Yearly",6:"Week-End"}[transaction.planduerationid] }}
                                         </span>
                                     </td>
-                                    <td class="fw-semibold {{'text-success' if transaction.transaction_type == 'Credit' else 'text-danger'}}">{{ transaction.transaction_type }}</td>
-                                    <td class="fw-semibold {{'text-success' if transaction.transaction_type == 'Credit' else 'text-danger'}}">₹{{ "%.2f"|format(transaction.amount) }}</td>
+                                    <td class="fw-semibold ">{{{1:"6am to 12pm",2:"12pm to 6pm",3:"6pm to 12am",4:"12am to 6am"}[transaction.shiftid] }}</td>
                                     <td>
-                                        <span class="badge bg-secondary">{{ transaction.payment_method }}</span>
+                                        <span >{{ transaction.planstartdate | format_date }}</span>
                                     </td>
-                                    <td>{{ transaction.transaction_made_to }}</td>
+                                    <td>{{ transaction.planexpirydate | format_date}}</td>
                                     <td>
-                                        {{transaction.description}}
+                                        {{'-' if transaction.locker_no==0 else transaction.locker_no}}
                                         
                                     </td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            {% if transaction.transaction_for == 'Admission' %}
-                                            <a href="{{ url_for('open_fastapi', receipt_id=transaction.receipt_id) }}" 
-                                               class="btn btn-outline-primary" title="View Receipt">
-                                                <i class="fas fa-file-alt"></i>
-                                            </a>
-                                            {% else %}
-                                            <a class="btn btn-link"><i class="fa-solid fa-minus"></i></a>
-                                            {% endif %}
-                                            
-                                        </div>
-                                        <div class="btn-group btn-group-sm">
-                                            {% if transaction.transaction_for == 'Admission' %}
-                                            <a href="{{ create_whatsapp_url(transaction.phone_number, get_receipt_link_msg(transaction.name,transaction.receipt_id)) }}" 
-                                               class="btn btn-outline-primary" title="View Receipt" target="_blank">
-                                               <i class="fa-solid fa-share"></i>
-                                            </a>
-                                            {% else %}
-                                            <a class="btn btn-link"><i class="fa-solid fa-minus"></i></a>
-                                            {% endif %}
-                                            
-                                        </div>
+                                    <td class="{{'text-success' if transaction.isactive == 1 else 'text-danger'}}">
+                                        {{'Active' if transaction.isactive==1 else 'Expired'}}
                                     </td>
                                 </tr>
                                 {% endfor %}

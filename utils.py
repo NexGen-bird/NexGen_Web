@@ -29,7 +29,23 @@ We're excited to support your learning journey! 📚✨
 Best regards,
 NEXGEN Study Centre Team"""
     return message
+def get_receipt_link_msg(customer_name,receiptID):
+    url = f"https://nexgeninvoicetracker.onrender.com/receipt/{str(receiptID)}"
+    final_message = f"""
+Hi {customer_name},
+Please find your receipt at the link below,
 
+Steps to download your receipt:
+1. Click on the link
+2. Enter your registered mobile number
+3. View and download your receipt
+
+{url}
+
+If you face any issues, feel free to reply to this message.
+Thank you for choosing NexGen Self Study Center!
+"""
+    return final_message
 def get_whatsapp_expiry_reminder(customer_name, days_left):
     """Generate a predefined WhatsApp message for expiry reminders"""
     message = f"""Dear {customer_name},
@@ -54,7 +70,7 @@ def calculate_age(birth_date):
 
 def format_currency(amount):
     """Format amount as Indian currency"""
-    return f"₹{amount:,.2f}"
+    print(f"₹{amount}")
 
 def format_currency_denomination(amount):
     """Format amount in K, L, Cr denominations"""

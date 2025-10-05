@@ -15,13 +15,18 @@
             </div>
             <div class="modal-body">
                 <div class="alert alert-info">
-                    <h6><i class="fas fa-lightbulb me-2"></i>Quick Guide:</h6>
-                    <ul class="mb-0">
-                        <li><strong>General:</strong> Regular membership transactions</li>
-                        <li><strong>Admission:</strong> New student enrollments</li>
-                        <li><strong>Investment:</strong> Partner investment transactions</li>
+                    <!-- <h6><i class="fas fa-lightbulb me-2"></i><strong>Incase of Investment:</strong> </h6>
+                    <ul class="mb-0"> -->
+                        <li><strong>incase of Investment:</strong><br> transaction type - 'IN'
+                            <br> description - 'Investment'
+                            <br> transaction made to - nexgen</li>
+                        <li><strong>incase of Salary - </strong><br> transaction type - 'OUT'
+                            <br> description - 'salary'
+                           <br> transaction made to - abhijit shinde or jayesh thakre</li>
+                        <!-- <li><strong>Investment:</strong> Partner Investment transactions</li>
                         <li><strong>Txn Type:</strong> IN for income, OUT for expenses</li>
-                        <li><strong>Partial Payment:</strong> Split between Cash and UPI amounts</li>
+                        <li><strong>Partial Payment:</strong> Note:
+                        </li> -->
                     </ul>
                 </div>
             </div>
@@ -43,22 +48,28 @@
                         <div class="row g-3">
                             <!-- Customer Selection (if not pre-selected) -->
                             {% if not selected_customer %}
-                            <div class="col-12">
+                            <div class="col-12" id="customer_name">
                                 <label class="form-label fw-semibold">
                                     <i class="fas fa-user me-1 text-primary"></i>Select Customer *
                                 </label>
-                                <select name="customer_id" class="form-select" required>
-                                    <option value="">Choose a customer...</option>
-                                    {% for customer in customers %}
-                                    <option value="{{ customer.id }}">{{ customer.full_name }} - {{ customer.contact_number }}</option>
-                                    {% endfor %}
-                                </select>
+                                <input type="text" 
+                                       id="full_name" 
+                                       name="full_name" 
+                                       class="form-control"     
+                                       autocomplete="off">
+                            
+                                <!-- Dropdown container -->
+                                <div id="nameDropdown" 
+                                     onclick="updateTxnType()"
+                                     class="list-group position-absolute w-100 shadow-sm" 
+                                     style="z-index: 1000; display: none;">
+                                </div>
                             </div>
                             {% else %}
                             <div class="col-12">
-                                <div class="alert alert-info">
+                                <div class="alert alert-info" id="selected_customer_name">
                                     <i class="fas fa-info-circle me-2"></i>
-                                    <strong>Customer:</strong> {{ selected_customer.full_name }} ({{ selected_customer.contact_number }})
+                                    <strong>Customer:</strong> {{ selected_customer.name }} - {{ selected_customer.phone_number }}
                                     <input type="hidden" name="customer_id" value="{{ selected_customer.id }}">
                                 </div>
                             </div>
@@ -67,7 +78,7 @@
                             <!-- Transaction Type -->
                             <div class="col-md-6">
                                 <label for="{{ form.transaction_type.id }}" class="form-label fw-semibold">
-                                    <i class="fas fa-tag me-1 text-primary"></i>Transaction Type *
+                                    <i class="fas fa-tag me-1 text-primary"></i>Transaction Mode *
                                 </label>
                                 {{ form.transaction_type(class="form-select", required=true, onchange="toggleFields()") }}
                             </div>
@@ -124,7 +135,7 @@
                                 <label for="{{ form.txn_type.id }}" class="form-label fw-semibold">
                                     <i class="fas fa-exchange-alt me-1 text-primary"></i>Txn Type
                                 </label>
-                                {{ form.txn_type(class="form-select") }}
+                                {{ form.txn_type(class="form-select", id="txn_type") }}
                             </div>
 
                             <!-- Locker Number -->
@@ -140,7 +151,7 @@
                                 <label for="{{ form.amount.id }}" class="form-label fw-semibold">
                                     <i class="fas fa-rupee-sign me-1 text-primary"></i>Amount *
                                 </label>
-                                {{ form.amount(class="form-control", required=true, step="0.01") }}
+                                {{ form.amount(class="form-control", required=true, step="1") }}
                             </div>
 
                             <!-- Payment Method -->
@@ -156,7 +167,7 @@
                                 <label for="{{ form.cash_amount.id }}" class="form-label fw-semibold">
                                     <i class="fas fa-money-bill me-1 text-primary"></i>Cash Amount
                                 </label>
-                                {{ form.cash_amount(class="form-control", step="0.01") }}
+                                {{ form.cash_amount(class="form-control", step="1") }}
                             </div>
 
                             <!-- UPI Amount (for partial payment) -->
@@ -164,15 +175,29 @@
                                 <label for="{{ form.upi_amount.id }}" class="form-label fw-semibold">
                                     <i class="fas fa-mobile-alt me-1 text-primary"></i>UPI Amount
                                 </label>
-                                {{ form.upi_amount(class="form-control", step="0.01") }}
+                                {{ form.upi_amount(class="form-control", step="1") }}
+                            </div>
+                            <!-- Txn made by -->
+                            <div class="col-md-6">
+                                <label for="{{ form.txn_made_by.id }}" class="form-label fw-semibold">
+                                    <i class="fas fa-exchange-alt me-1 text-primary"></i>Transaction made by
+                                </label>
+                                {{ form.txn_made_by(class="form-control", id="txn_made_by") }}
                             </div>
 
+                            <!-- Txn made to -->
+                            <div class="col-md-6">
+                                <label for="{{ form.txn_made_to.id }}" class="form-label fw-semibold">
+                                    <i class="fas fa-key me-1 text-primary"></i>Transaction made to
+                                </label>
+                                {{ form.txn_made_to(class="form-control", id="txn_made_to") }}
+                            </div>
                             <!-- Description -->
                             <div class="col-12">
                                 <label for="{{ form.description.id }}" class="form-label fw-semibold">
                                     <i class="fas fa-comment me-1 text-primary"></i>Description
                                 </label>
-                                {{ form.description(class="form-control", rows="3") }}
+                                {{ form.description(class="form-control", rows="3", id="description") }}
                             </div>
 
                             <!-- Submit Button -->
@@ -195,31 +220,80 @@
 
 {% block extra_js %}
 <script>
+function updateTxnType() {
+    const transactionType = document.getElementById("transaction_type").value;
+    const txnType = document.getElementById("txn_type");
+    const txnmadeby = document.getElementById("txn_made_by");
+    const txnmadeto = document.getElementById("txn_made_to");
+    const customerSelect = document.querySelector('select[name="customer_id"]');
+    const customerName = document.getElementById('full_name');
+    const description = document.getElementById('description');
+    const selectedName = document.getElementById('selected_customer_name')
+
+    if (!txnType) return;
+
+    if (transactionType === "General") {
+        txnType.value = "OUT";   // Set to OUT
+        txnmadeby.value = "nexgen";
+        customerName.removeAttribute('required','required');
+    } else if (transactionType === "Admission") {
+        const username = "{{ session.get('userName', '') }}";
+        txnmadeby.value = customerName.value;
+        customerName.setAttribute('required','required');
+        txnType.value = "IN";    // Set to IN
+        txnmadeto.value = username.toLowerCase();    // Set to logged in user
+        description.value = "admission";
+       
+    }
+    else if (transactionType === "Investment") {
+        const username = "{{ session.get('userName', '') }}";
+        txnType.value = "IN";    // Set to IN
+        txnmadeby.value = username.toLowerCase();    // Set to logged in user
+        txnmadeto.value = "nexgen";    
+        description.value = "investment";
+        customerName.removeAttribute('required','required');
+       
+    }
+    if (txnType.value === "OUT"){
+        txnmadeby.value = "nexgen";
+    } 
+    
+}
+
 function toggleFields() {
     const transactionType = document.getElementById('transaction_type').value;
     const planField = document.getElementById('plan');
+    const customerName = document.getElementById('customer_name');
+    const customerNameinput = document.getElementById('full_name');
     const shiftsDiv = document.querySelector('.col-md-6:has(.border)');
     const startDateField = document.getElementById('start_date');
     const endDateField = document.getElementById('end_date');
     const customerSelect = document.querySelector('select[name="customer_id"]');
     
-    if (transactionType === 'investment') {
-        // Hide customer-related fields for investment
+    if (transactionType != 'Admission') {
+        // Hide customer-related fields for Investment
         if (customerSelect) customerSelect.closest('.col-12').style.display = 'none';
         planField.closest('.col-md-6').style.display = 'none';
+        customerName.closest('.col-12').style.display = 'none';
+        customerNameinput.removeAttribute('required','required');
         shiftsDiv.style.display = 'none';
         startDateField.closest('.col-md-6').style.display = 'none';
         endDateField.closest('.col-md-6').style.display = 'none';
         document.getElementById('locker_number').closest('.col-md-6').style.display = 'none';
     } else {
-        // Show fields for admission/general
+        // Show fields for admission/General
         if (customerSelect) customerSelect.closest('.col-12').style.display = 'block';
+        customerName.closest('.col-12').style.display = 'block';
         planField.closest('.col-md-6').style.display = 'block';
+        customerNameinput.setAttribute('required','required');
+    
         shiftsDiv.style.display = 'block';
         startDateField.closest('.col-md-6').style.display = 'block';
         endDateField.closest('.col-md-6').style.display = 'block';
         document.getElementById('locker_number').closest('.col-md-6').style.display = 'block';
     }
+    // Always update txn_type when transaction_type changes
+    updateTxnType();
 }
 
 function togglePartialPayment() {
@@ -243,28 +317,29 @@ function calculateEndDate() {
     if (startDate && plan) {
         const start = new Date(startDate);
         let end = new Date(start);
-        
+        console.log(plan)
         switch(plan) {
-            case 'Monthly':
+            case '2':
                 end.setMonth(end.getMonth() + 1);
                 break;
-            case 'Quarterly':
+            case '3':
                 end.setMonth(end.getMonth() + 3);
                 break;
-            case 'Half Yearly':
+            case '4':
                 end.setMonth(end.getMonth() + 6);
                 break;
-            case 'Yearly':
+            case '5':
                 end.setFullYear(end.getFullYear() + 1);
                 break;
-            case 'Day':
+            case '1':
                 end.setDate(end.getDate() + 1);
                 break;
-            case 'Weekend':
-                end.setDate(end.getDate() + 2);
+            case '6':
+                end.setMonth(end.getMonth() + 1);
                 break;
         }
-        
+        // Always subtract 1 day
+        end.setDate(end.getDate() - 1);
         document.getElementById('end_date').value = end.toISOString().split('T')[0];
     }
 }
@@ -278,6 +353,50 @@ document.addEventListener('DOMContentLoaded', function() {
     calculateEndDate();
     toggleFields();
     togglePartialPayment();
+    updateTxnType();
 });
 </script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const input = document.getElementById("full_name");
+        const dropdown = document.getElementById("nameDropdown");
+    
+        input.addEventListener("input", function () {
+            let query = input.value.trim();
+            if (query.length < 2) {
+                dropdown.style.display = "none";
+                return;
+            }
+    
+            fetch(`/autocomplete/txnnames?q=${encodeURIComponent(query)}`)
+                .then(res => res.json())
+                .then(data => {
+                    dropdown.innerHTML = "";
+                    if (data.length > 0) {
+                        data.forEach(name => {
+                            let item = document.createElement("a");
+                            item.classList.add("list-group-item", "list-group-item-action");
+                            item.textContent = name;
+                            item.addEventListener("click", function () {
+                                input.value = name;
+                                dropdown.style.display = "none";
+                            });
+                            dropdown.appendChild(item);
+                        });
+                        dropdown.style.display = "block";
+                    } else {
+                        dropdown.style.display = "none";
+                    }
+                });
+        });
+    
+        // Hide dropdown if clicked outside
+        document.addEventListener("click", function (e) {
+            if (!dropdown.contains(e.target) && e.target !== input) {
+                dropdown.style.display = "none";
+            }
+        });
+    });
+    </script>
+
 {% endblock %}
