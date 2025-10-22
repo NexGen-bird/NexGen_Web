@@ -8,21 +8,55 @@ SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+from supabase import create_client, Client
+from gotrue.errors import AuthApiError, AuthRetryableError, AuthInvalidCredentialsError
 
 def login_with_email_password(email, password):
-    response= None
     try:
-        # Sign in using the 'auth' method
-        isinternet=apputils.is_internet_available()
-        if isinternet:
-            response =  supabase.auth.sign_in_with_password({"email": email, "password": password})
-            return response  # Return user details on success
+        if not apputils.is_internet_available():
+            apputils.snack("red", "No Internet Connection..")
+            return None
+
+        response = supabase.auth.sign_in_with_password({"email": email, "password": password})
+
+        # Check if the response contains a valid user
+        if response and response.user:
+            return response
         else:
-            apputils.snack("red","No Internet Connection..")
-    except AuthApiError as e:  #gotrue.errors.AuthRetryableError: [Errno 8] nodename nor servname provided, or not known
-        dialog = dialog_element(title="Login Failed",text=f"Error! {e}")
-        dialog.open()
+            apputils.snack("red", "Invalid email or password.")
+            return None
+
+    except AuthInvalidCredentialsError:
+        apputils.snack("red", "Invalid email or password.")
         return None
+
+    except AuthApiError as e:
+        apputils.snack("red", f"Authentication error: {e}")
+        return None
+
+    except AuthRetryableError:
+        apputils.snack("red", "Temporary network issue. Please try again.")
+        return None
+
+    except Exception as e:
+        apputils.snack("red", f"{str(e)}")
+        return None
+
+
+# def login_with_email_password(email, password):
+#     response= None
+#     try:
+#         # Sign in using the 'auth' method
+#         isinternet=apputils.is_internet_available()
+#         if isinternet:
+#             response =  supabase.auth.sign_in_with_password({"email": email, "password": password})
+#             return response  # Return user details on success
+#         else:
+#             apputils.snack("red","No Internet Connection..")
+#     except AuthApiError as e:  #gotrue.errors.AuthRetryableError: [Errno 8] nodename nor servname provided, or not known
+#         # dialog = dialog_element(title="Login Failed",text=f"Error! {e}")
+#         # dialog.open()
+#         return None
     # except Exception as e:
     #     error_message = str(e)
     #     if "EMAIL_NOT_FOUND" in error_message:

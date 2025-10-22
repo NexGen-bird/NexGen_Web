@@ -15,9 +15,15 @@ from utilities.apputils import *
 from supabase_lib.supabase_auth import *
 
 app.jinja_env.filters["bgcolor"] = get_background_color
+def is_login_valid():
+    Check_Customer = """
+    SELECT * FROM "Customers"
+    """
+    check = run_sql(Check_Customer)
+    return check
 @app.route('/')
 def index():
-    if 'user_id' not in session:
+    if not is_login_valid():
         return redirect(url_for('login'))
     return redirect(url_for('dashboard'))
 
@@ -27,6 +33,7 @@ def login():
     if form.validate_on_submit():
         # user = User.query.filter_by(email=form.email.data).first()
         user = login_with_email_password(form.email.data,form.password.data)
+        print(f"User details--> {user}")
         # if user and user.check_password(form.password.data):
         if user:
             session['user_id'] = user.user.id
@@ -34,13 +41,13 @@ def login():
             # session["access_token"] = user.session.access_token
             # session["refresh_token"] = user.session.refresh_token
             session['userName'] = "Abhijit Shinde" if "shinde" in user.user.email else "Jayesh Thakre" if "thakre" in user.user.email else "NexGen" 
-            print("Response ----> ",user,"------>End<-------")
-            flash('Logged in successfully!', 'success')
+            # print("Response ----> ",user,"------>End<-------")
+            # flash('Logged in successfully!', 'success')
             
             # flash(session.get("email"),'success')
             return redirect(url_for('dashboard'))
-        else:
-            flash('Invalid email or password.', 'danger')
+        # else:
+        #     flash('Invalid email or password.', 'danger')
     return render_template('login.html', form=form)
 
 @app.route('/forgot-password', methods=['GET', 'POST'])
@@ -59,7 +66,7 @@ def forgot_password():
 @app.route('/logout')
 def logoutuser():
     session.pop('user_id', None)
-    flash('Logged out successfully!', 'info')
+    # flash('Logged out successfully!', 'info')
     session.pop('admission_form_details', None)
     session.pop('transaction_type', None)
     logout()
@@ -67,7 +74,8 @@ def logoutuser():
 
 @app.route('/dashboard')
 def dashboard():
-    if 'user_id' not in session:
+    
+    if not is_login_valid():
         return redirect(url_for('login'))
     
     api_results = {}
@@ -342,6 +350,7 @@ def get_student_details():
             details = result[0]
         else:
             flash("Please Re-Login")
+            
     elif name:
         result = get_customers_details("name",name)
         if result:
@@ -369,7 +378,7 @@ def get_student_details():
 def admission():
     #login_with_email_password("abhijit.shinde@test.com","india@123")
 
-    if 'user_id' not in session:
+    if not is_login_valid():
         return redirect(url_for('login'))
     
     form = AdmissionForm()
@@ -388,24 +397,9 @@ def admission():
                 "customer_profile_image": "assets/img/female.jpg" if form.gender.data == "Female" else "assets/img/male.jpg",
                 # "customer_profile_image": self.profile_image.strip(),
             }
-        
-        # customer = {"contact_number":"","full_name":"","date_of_birth":"","age":"","gender":"","email":"","education_details":"","study_option":"","address":""}
-        # customer['contact_number'] = form.contact_number.data
-        # customer['full_name'] = form.full_name.data
-        # customer['date_of_birth'] = form.date_of_birth.data.strftime('%Y-%m-%d')
-        # customer['age'] = age
-        # customer['gender'] = form.gender.data
-        # customer['email'] = form.email.data
-        # customer['education_details'] = form.education_details.data
-        # customer['study_option'] = form.study_option.data
-        # customer['address'] = form.address.data
-        
-        
-        # db.session.add(customer)
-        # db.session.commit()
-        print("Form Data - > ",form_data)
+        # print("Form Data - > ",form_data)
         session['admission_form_details'] = form_data
-        flash(form_data,'success')
+        # flash(form_data,'success')
         
         flash('Admission form submitted successfully!', 'success')
         return redirect(url_for('add_transaction', customer_details=None, transaction_type='Admission'))
@@ -415,9 +409,9 @@ def admission():
 @app.route('/add-transaction', methods=["GET", "POST"])
 @app.route('/add-transaction/<customer_details>', methods=["GET", "POST"])
 def add_transaction(customer_details=None):
-    login_with_email_password("abhijit.shinde@test.com","india@123")
-    flash(f"Session data --> {session.get('admission_form_details')}",'success')
-    if 'user_id' not in session:
+    # login_with_email_password("abhijit.shinde@test.com","india@123")
+    # flash(f"Session data --> {session.get('admission_form_details')}",'success')
+    if not is_login_valid():
         return redirect(url_for('login'))
     customer_details = session.get('admission_form_details')
     number = "8108236131"
@@ -431,6 +425,9 @@ def add_transaction(customer_details=None):
         selected_customer = {'name':customer_details['customer_name'],'phone_number':customer_details['customer_phone_number']} if selected_customer_query == None else selected_customer_query[0]
         # print("Test -->",selected_customer)
         form.transaction_type.data = request.args.get('transaction_type', 'Admission')
+        form.description.data ='admission'
+        form.txn_made_by.data =customer_details['customer_name']
+        form.txn_made_to.data = session.get('userName').lower()
     
     if form.validate_on_submit():
         txn_date = apputils.add_current_time_to_date(form.transaction_date.data.strftime('%Y-%m-%d'))
@@ -491,7 +488,7 @@ def add_transaction(customer_details=None):
                                 transaction_for=form.transaction_type.data,
                                 description=form.description.data.strip(),
                                 transaction_made_to= (form.txn_made_to.data.lower()).strip())
-                flash(f"Txn Response --> {res}", 'danger')
+                # flash(f"Txn Response --> {res}", 'danger')
                 result = res.split(":")[0]
                 if result.strip()=="Pass":
                     apputils.snack(color="green",text="Transaction Submitted Successfully!")
@@ -548,9 +545,9 @@ def add_transaction(customer_details=None):
                         "customer_shift": str(apputils.get_shift_text(form.shifts.data)),
                         "customer_plantype": str(get_plan_from_id(form.plan.data))
                     }
-                    flash(f"receipt data --> {receipt_data}")
+                    # flash(f"receipt data --> {receipt_data}")
                     receipt_res = insert_receipt_data(receipt_data)
-                    print(f"receipt Result --> {receipt_res}")
+                    # print(f"receipt Result --> {receipt_res}")
                     if receipt_res:
                         receipt_result = receipt_res.split(":")[0]
                         if receipt_result.strip()=="Pass":
@@ -592,7 +589,7 @@ def add_transaction(customer_details=None):
 
 @app.route('/transactions')
 def transactions():
-    if 'user_id' not in session:
+    if not is_login_valid():
         return redirect(url_for('login'))
     #login_with_email_password("abhijit.shinde@test.com","india@123")
     
@@ -645,97 +642,106 @@ def format_to_inr(value):
 
 @app.route('/customers')
 def customers():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    
-    page = request.args.get('page', 1, type=int)
-    
-    # Get all customers first, then add transaction info
-    customers_data = []
-    api_results = {}
-    query_customer_list = """
-                        SELECT * FROM (
-                        SELECT DISTINCT ON (c.id) 
-                            c.id, 
-                            c.name,
-                            c.gender, 
-                            c.email, 
-                            c.created_at,
-                            p.isactive, 
-                            p.planstartdate, 
-                            p.planexpirydate,
-                            c.phone_number,
-                            c.profile_image,
-                            c.joining_for
-                        FROM "Customers" c
-                        JOIN "subscription"  p ON c.id = p.customerid::uuid
-                        ORDER BY c.id, p.planstartdate DESC
-                        ) AS latest_plans
-                        ORDER BY planstartdate DESC
-                        """
-    api_tasks = {
-        "customers": partial(run_sql,query_customer_list),
-    }
-
-    results = {}
-    #login_with_email_password("abhijit.shinde@test.com","india@123")
-    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
-        future_to_key = {
-            executor.submit(func): key for key, func in api_tasks.items()
+    try:
+        if not is_login_valid():
+            return redirect(url_for('login'))
+        
+        page = request.args.get('page', 1, type=int)
+        
+        # Get all customers first, then add transaction info
+        customers_data = []
+        api_results = {}
+        query_customer_list = """
+                            SELECT * FROM (
+                            SELECT DISTINCT ON (c.id) 
+                                c.id, 
+                                c.name,
+                                c.gender, 
+                                c.email, 
+                                c.created_at,
+                                p.isactive, 
+                                p.planstartdate, 
+                                p.planexpirydate,
+                                c.phone_number,
+                                c.profile_image,
+                                c.joining_for
+                            FROM "Customers" c
+                            JOIN "subscription"  p ON c.id = p.customerid::uuid
+                            ORDER BY c.id, p.planstartdate DESC
+                            ) AS latest_plans
+                            ORDER BY planstartdate DESC
+                            """
+        api_tasks = {
+            "customers": partial(run_sql,query_customer_list),
         }
 
-        for future in concurrent.futures.as_completed(future_to_key):
-            key = future_to_key[future]
-            try:
-                results[key] = future.result()
-            except Exception as e:
-                results[key] = f"Error: {str(e)}"
+        results = {}
+        #login_with_email_password("abhijit.shinde@test.com","india@123")
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+            future_to_key = {
+                executor.submit(func): key for key, func in api_tasks.items()
+            }
 
-    api_results = results
-    all_customers = api_results['customers']
-    print("Customer Listing -- > ",all_customers)
-    customers_data = all_customers
-    
-    
-    # Simple pagination implementation
-    per_page = 30
-    total = len(customers_data)
-    start = (page - 1) * per_page
-    end = start + per_page
-    items = customers_data[start:end]
-    
-    # Create pagination object manually
-    class Pagination:
-        def __init__(self, page, per_page, total, items):
-            self.page = page
-            self.per_page = per_page
-            self.total = total
-            self.items = items
-            self.pages = (total + per_page - 1) // per_page
-            self.has_prev = page > 1
-            self.has_next = page < self.pages
-            self.prev_num = page - 1 if self.has_prev else None
-            self.next_num = page + 1 if self.has_next else None
-            
-        def iter_pages(self, left_edge=2, right_edge=2, left_current=2, right_current=3):
-            last = self.pages
-            for num in range(1, last + 1):
-                if num <= left_edge or \
-                   (self.page - left_current - 1 < num < self.page + right_current) or \
-                   num > last - right_edge:
-                    yield num
-    
-    customers = Pagination(page, per_page, total, items)
-    
-    return render_template('customers.html', 
-                         customers=customers_data,
-                         create_whatsapp_url=create_whatsapp_url,
-                         get_whatsapp_expiry_reminder=get_whatsapp_expiry_reminder,
-                         date=date)
+            for future in concurrent.futures.as_completed(future_to_key):
+                key = future_to_key[future]
+                try:
+                    results[key] = future.result()
+                except Exception as e:
+                    results[key] = f"Error: {str(e)}"
+
+        api_results = results
+        print(f"API Results --> {api_results}")
+        all_customers = api_results['customers']
+        print("Customer Listing -- > ",all_customers)
+        if "Error" in all_customers:
+            return redirect(url_for("login"))
+            customers_data = all_customers
+        
+        
+        # Simple pagination implementation
+        per_page = 30
+        total = len(customers_data)
+        start = (page - 1) * per_page
+        end = start + per_page
+        items = customers_data[start:end]
+        
+        # Create pagination object manually
+        class Pagination:
+            def __init__(self, page, per_page, total, items):
+                self.page = page
+                self.per_page = per_page
+                self.total = total
+                self.items = items
+                self.pages = (total + per_page - 1) // per_page
+                self.has_prev = page > 1
+                self.has_next = page < self.pages
+                self.prev_num = page - 1 if self.has_prev else None
+                self.next_num = page + 1 if self.has_next else None
+                
+            def iter_pages(self, left_edge=2, right_edge=2, left_current=2, right_current=3):
+                last = self.pages
+                for num in range(1, last + 1):
+                    if num <= left_edge or \
+                    (self.page - left_current - 1 < num < self.page + right_current) or \
+                    num > last - right_edge:
+                        yield num
+        
+        customers = Pagination(page, per_page, total, items)
+        
+        return render_template('customers.html', 
+                            customers=customers_data,
+                            create_whatsapp_url=create_whatsapp_url,
+                            get_whatsapp_expiry_reminder=get_whatsapp_expiry_reminder,
+                            date=date)
+    except Exception as e:
+        print("Inside Except..")
+        flash(f"Something went wrong. {e}")
+        return redirect(url_for('login'))
+
 
 @app.route('/investment-summary')
 def investment_summary():
-    if 'user_id' not in session:
+    if not is_login_valid():
         return redirect(url_for('login'))
     response = get_investmenttransactionspagedata()
 
@@ -795,7 +801,7 @@ def investment_summary():
 
 @app.route('/subcriptions')
 def subcriptions():
-    if 'user_id' not in session:
+    if not is_login_valid():
         return redirect(url_for('login'))
     
     #login_with_email_password("abhijit.shinde@test.com","india@123")
@@ -808,7 +814,7 @@ def subcriptions():
 # API endpoint for dashboard charts
 @app.route('/api/dashboard-data')
 def dashboard_data():
-    if 'user_id' not in session:
+    if not is_login_valid():
         return jsonify({'error': 'Unauthorized'}), 401
     
     # Last 3 months P&L data
@@ -864,7 +870,7 @@ def dashboard_data():
 # API endpoint for locker information
 @app.route('/api/lockers')
 def locker_info():
-    if 'user_id' not in session:
+    if not is_login_valid():
         return jsonify({'error': 'Unauthorized'}), 401
     
     # Get all lockers with their assignment info

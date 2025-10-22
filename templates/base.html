@@ -79,6 +79,7 @@
   {% block extra_css %}{% endblock %}
 </head>
 <body>
+  
 {% if session.user_id %}
   <!-- Navbar -->
   <nav class="navbar navbar-light bg-light shadow-sm">
@@ -130,6 +131,20 @@
   <!-- Main wrapper -->
   <div class="main-content p-4" id="mainContent">
 {% else %}
+{% block flash_messages %}
+<div class="container mt-3">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+</div>
+{% endblock %}
   <!-- Guest (e.g., login) -->
   <div class="container py-4">
 {% endif %}

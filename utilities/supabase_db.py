@@ -4,9 +4,13 @@ from flask import redirect, url_for
 
 
 # Create a new customer
-
+def check_user_login():
+    user = supabase.auth.get_session()
+    # apputils.snack("red",f"user session {user}")
+    return user
 def session_timeout():
     print("Session Time Out..")
+    apputils.snack("red",f"Session time out, Please Re-Login.")
     return redirect(url_for("login"))
 def create_customer(name, dob, gender, phone_number, email, education, joining_for, address, profile_image):
     data = {
@@ -23,7 +27,7 @@ def create_customer(name, dob, gender, phone_number, email, education, joining_f
     isinternet = apputils.is_internet_available()
 
     try:
-        user = supabase.auth.get_session()
+        user = check_user_login()
 
         if not user:
             session_timeout()
@@ -44,7 +48,7 @@ def get_all_customers():
     isinternet = apputils.is_internet_available()
 
     try:
-        user = supabase.auth.get_session()
+        user = check_user_login()
 
         if not user:
             session_timeout()
@@ -62,7 +66,7 @@ def get_all_customers():
 def get_customers_details(column_name,contact_number):
     isinternet=apputils.is_internet_available()
     try:
-        user = supabase.auth.get_session()
+        user = check_user_login()
 
         if not user:
             session_timeout()
@@ -81,7 +85,7 @@ def update_customer(contact_number, updates):
     isinternet = apputils.is_internet_available()
 
     try:
-        user = supabase.auth.get_session()
+        user = check_user_login()
 
         if not user:
             session_timeout()
@@ -100,7 +104,7 @@ def delete_customer(customer_name):
     isinternet = apputils.is_internet_available()
 
     try:
-        user = supabase.auth.get_session()
+        user = check_user_login()
 
         if not user:
             session_timeout() 
@@ -118,7 +122,7 @@ def get_all_customers_contact():
     isinternet = apputils.is_internet_available()
 
     try:
-        user = supabase.auth.get_session()
+        user = check_user_login()
 
         if not user:
             session_timeout() 
@@ -136,7 +140,7 @@ def get_all_customers_names():
     isinternet = apputils.is_internet_available()
 
     try:
-        user = supabase.auth.get_session()
+        user = check_user_login()
 
         if not user:
             session_timeout() 
@@ -165,7 +169,7 @@ def create_transaction(txn_date,transaction_type,amount,txn_made_by, payment_met
     isinternet = apputils.is_internet_available()
 
     try:
-        user = supabase.auth.get_session()
+        user = check_user_login()
 
         if not user:
             session_timeout() 
@@ -174,7 +178,7 @@ def create_transaction(txn_date,transaction_type,amount,txn_made_by, payment_met
             apputils.snack("red", "No Internet Connection.")
         else:
             # response = supabase.rpc("insert_general_transactions", data).execute()
-            response = supabase.rpc("qainsert_general_transactions", data).execute()
+            response = supabase.rpc("insert_general_transactions", data).execute()
             # supabase.auth.sign_out()
             apputils.snack(color="green",msg="Transaction Submitted Successfully!")
             return response.data
@@ -188,7 +192,7 @@ def get_all_transactions():
     isinternet = apputils.is_internet_available()
 
     try:
-        user = supabase.auth.get_session()
+        user = check_user_login()
 
         if not user:
             session_timeout() 
@@ -206,7 +210,7 @@ def get_transactionspagedata():
     isinternet = apputils.is_internet_available()
 
     try:
-        user = supabase.auth.get_session()
+        user = check_user_login()
 
         if not user:
              
@@ -217,7 +221,7 @@ def get_transactionspagedata():
             print("No Internet Connection.")
             # apputils.snack("red", "No Internet Connection.")
         else:
-            response = supabase.rpc("fetch_transaction_details_qa").execute()
+            response = supabase.rpc("fetch_transaction_details").execute()
             #  
             return response.data
 
@@ -228,7 +232,7 @@ def get_investmenttransactionspagedata():
     isinternet = apputils.is_internet_available()
 
     try:
-        user = supabase.auth.get_session()
+        user = check_user_login()
 
         if not user:
             session_timeout() 
@@ -247,7 +251,7 @@ def get_subcriptionpagedata():
     isinternet = apputils.is_internet_available()
 
     try:
-        user = supabase.auth.get_session()
+        user = check_user_login()
 
         if not user:
             session_timeout() 
@@ -255,7 +259,7 @@ def get_subcriptionpagedata():
         elif not isinternet:
             apputils.snack("red", "No Internet Connection.")
         else:
-            response = supabase.rpc("fetch_subcription_detailsqa").execute()
+            response = supabase.rpc("fetch_subcription_details").execute()
             return response.data
 
     except Exception as e:
@@ -265,7 +269,7 @@ def get_subcriptionpagedata():
 def get_net_profit(start_date,end_date):
     isinternet = apputils.is_internet_available()
     try:
-        user = supabase.auth.get_session()
+        user = check_user_login()
 
         if not user:
             session_timeout()
@@ -283,7 +287,7 @@ def get_investment_details(name):
     isinternet = apputils.is_internet_available()
 
     try:
-        user = supabase.auth.get_session()
+        user = check_user_login()
 
         if not user:
             session_timeout() 
@@ -301,7 +305,7 @@ def get_expense_profit():
     isinternet = apputils.is_internet_available()
 
     try:
-        user = supabase.auth.get_session()
+        user = check_user_login()
 
         if not user:
             session_timeout() 
@@ -322,7 +326,7 @@ def delete_transaction(transaction_id):
     isinternet = apputils.is_internet_available()
 
     try:
-        user = supabase.auth.get_session()
+        user = check_user_login()
 
         if not user:
             session_timeout() 
@@ -341,7 +345,7 @@ def insert_addmission(data):
     isinternet = apputils.is_internet_available()
 
     try:
-        user = supabase.auth.get_session()
+        user = check_user_login()
 
         if not user:
             session_timeout() 
@@ -349,7 +353,7 @@ def insert_addmission(data):
         elif not isinternet:
             apputils.snack("red", "No Internet Connection.")
         else:
-            response = supabase.rpc("insert_addmissionsqa", data).execute()
+            response = supabase.rpc("insert_addmissions", data).execute()
             return response.data
 
     except Exception as e:
@@ -359,7 +363,7 @@ def insert_receipt_data(data):
     isinternet = apputils.is_internet_available()
 
     try:
-        user = supabase.auth.get_session()
+        user = check_user_login()
 
         if not user:
             session_timeout() 
@@ -367,7 +371,7 @@ def insert_receipt_data(data):
         elif not isinternet:
             apputils.snack("red", "No Internet Connection.")
         else:
-            response = supabase.rpc("insert_receipt_dataqa", data).execute()
+            response = supabase.rpc("insert_receipt_data", data).execute()
             return response.data
 
     except Exception as e:
@@ -377,7 +381,7 @@ def insert_receipt_data(data):
 def run_sql(query):
 
     try:
-        user = supabase.auth.get_session()
+        user = check_user_login()
 
         if not user:
             session_timeout()
@@ -386,12 +390,14 @@ def run_sql(query):
             return response.data
 
     except Exception as e:
+       apputils.snack("red",f"Issue --> {e}")
+       print(f"Issue --> {e}")
        return {"error": f"Error fetching data: {e}"}
 def upload_image(imagepath,imagename):
     isinternet = apputils.is_internet_available()
 
     try:
-        user = supabase.auth.get_session()
+        user = check_user_login()
 
         if not user:
             session_timeout()    
@@ -418,7 +424,7 @@ def get_profile_img(imagename):
     isinternet = apputils.is_internet_available()
 
     try:
-        user = supabase.auth.get_session()
+        user = check_user_login()
 
         if not user:
             session_timeout()    
@@ -440,7 +446,7 @@ def search_profile_img(imagename):
     isinternet = apputils.is_internet_available()
 
     try:
-        user = supabase.auth.get_session()
+        user = check_user_login()
 
         if not user:
             session_timeout()    
@@ -473,7 +479,7 @@ def update_receipt_sent(receiptid):
     isinternet = apputils.is_internet_available()
 
     try:
-        user = supabase.auth.get_session()
+        user = check_user_login()
 
         if not user:
             session_timeout()
@@ -493,7 +499,7 @@ def get_chart_data():
     isinternet = apputils.is_internet_available()
 
     try:
-        user = supabase.auth.get_session()
+        user = check_user_login()
 
         if not user:
             session_timeout()
@@ -512,7 +518,7 @@ def get_admission_chart_data():
     isinternet = apputils.is_internet_available()
 
     try:
-        user = supabase.auth.get_session()
+        user = check_user_login()
 
         if not user:
             session_timeout()
