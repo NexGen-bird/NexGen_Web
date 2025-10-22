@@ -695,7 +695,7 @@ def customers():
         print("Customer Listing -- > ",all_customers)
         if "Error" in all_customers:
             return redirect(url_for("login"))
-            customers_data = all_customers
+        customers_data = all_customers
         
         
         # Simple pagination implementation
