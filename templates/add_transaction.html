@@ -3,6 +3,7 @@
 {% block title %}Add Transaction - NEXGEN Study Centre{% endblock %}
 
 {% block content %}
+
 <!-- Information Modal -->
 <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -398,5 +399,39 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     </script>
-
+<script>
+    document.getElementById("transactionForm").addEventListener("submit", async function(event) {
+        event.preventDefault(); // stop normal page reload
+    
+        const form = event.target;
+        const formData = new FormData(form);
+    
+        try {
+            const response = await fetch(form.action || "/add-transaction", {
+                method: "POST",
+                body: formData
+            });
+    
+            const result = await response.json();
+    
+            if (result.status === "success") {
+                // Show popup before redirect
+                const confirmed = confirm("✅ Transaction submitted successfully! Open WhatsApp !");
+                if (confirmed) {
+                    const phone = result.phone;
+                    const message = encodeURIComponent(result.message);
+                    const whatsappUrl = `https://wa.me/${phone}?text=${message}`;
+                    window.open(whatsappUrl, "_blank");
+                } 
+                // Redirect current page to /transactions
+                window.location.href = "/transactions";
+            } else {
+                alert("❌ Something went wrong: " + result.message);
+            }
+        } catch (error) {
+            alert("⚠️ Error submitting form: " + error);
+        }
+    });
+    </script>
+                
 {% endblock %}

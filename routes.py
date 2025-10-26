@@ -25,7 +25,7 @@ def is_login_valid():
 def index():
     if not is_login_valid():
         return redirect(url_for('login'))
-    return redirect(url_for('dashboard'))
+    return redirect(url_for('customers'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -45,7 +45,7 @@ def login():
             # flash('Logged in successfully!', 'success')
             
             # flash(session.get("email"),'success')
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('customers'))
         # else:
         #     flash('Invalid email or password.', 'danger')
     return render_template('login.html', form=form)
@@ -211,8 +211,17 @@ SUM(CASE WHEN transaction_type = 'OUT' THEN amount ELSE 0 END) AS total_expenses
     # Calculate dashboard metrics
 
     # Available lockers
+    query = """
+select distinct customerid FROM subscription where islocker != 0 and isactive = 1
+
+"""
+    locker_occupied_by = run_sql(query=query)
+    if locker_occupied_by != None:
+        occupied_lockers = len(locker_occupied_by)
+    else:
+        occupied_lockers = 0
+        
     total_lockers = 6  # Total number of lockers
-    occupied_lockers = 4
     available_lockers = total_lockers - occupied_lockers
     
     metrics = {
@@ -373,6 +382,30 @@ def get_student_details():
             "profile_img":details["profile_image"]
         }
     return {}
+@app.route("/redirect_transaction")
+def redirect_transaction():
+    customer_id = request.args.get('customer_id')
+    result = get_customers_details("id",customer_id)
+    if result:
+        details = result[0]
+            
+        form_data = {
+                    "customer_name": details["name"],
+                    "customer_dob": details["dob"],
+                    "customer_gender": details["gender"],
+                    "customer_phone_number": details["phone_number"],
+                    "customer_email": details["email"],
+                    "customer_education": details["education"],
+                    "customer_joining_for": details["joining_for"],
+                    "customer_address": details["address"],
+                    "customer_profile_image": "assets/img/female.jpg" if details["gender"] == "Female" else "assets/img/male.jpg",
+                    # "customer_profile_image": self.profile_image.strip(),
+                }
+            # print("Form Data - > ",form_data)
+        session['admission_form_details'] = form_data
+    else:
+        print("No details present")
+    return redirect(url_for('add_transaction', customer_details=None, transaction_type='Admission'))
 
 @app.route('/admission', methods=['GET', 'POST'])
 def admission():
@@ -516,6 +549,7 @@ def add_transaction(customer_details=None):
                 admission_form_data.update(customer_details)
             admission_form_data.update(data)
             # flash(f"Admission Form --> {admission_form_data}")
+            # res = insert_addmissionqa(admission_form_data)
             res = insert_addmission(admission_form_data)
             # print(f"Admission Result --> {res}")
             result = res.split(":")[0] if res != None else "Fail : Unknown"
@@ -547,6 +581,7 @@ def add_transaction(customer_details=None):
                     }
                     # flash(f"receipt data --> {receipt_data}")
                     receipt_res = insert_receipt_data(receipt_data)
+                    # receipt_res = insert_receipt_dataqa(receipt_data)
                     # print(f"receipt Result --> {receipt_res}")
                     if receipt_res:
                         receipt_result = receipt_res.split(":")[0]
@@ -557,7 +592,7 @@ def add_transaction(customer_details=None):
                     else:
                         flash("No Receipt result")
                     msg = f"""
-    *TEST ENTRY FROM WEBSIDE*
+    *ENTRY FROM WEBSIDE*
     ID - NG
     Name - {receipt_data['customer_name']}
     phone - {receipt_data['customer_phone_number']}
@@ -565,17 +600,23 @@ def add_transaction(customer_details=None):
     Locker Number - {admission_form_data['locker_no'] if admission_form_data['is_locker']==1 else "No Locker Taken"}
     Payment mode - {receipt_data['customer_payment_method']}
     Payment Amount- {receipt_data['customer_amount']}
-    Payment date - {txn_date}
-    Joining Date - {receipt_data['customer_planstartdate']}
-    Subscription Expiry date - {receipt_data['customer_planexpirydate']}
+    Payment date - {date_format(txn_date)}
+    Joining Date - {date_format(receipt_data['customer_planstartdate'])}
+    Subscription Expiry date - {date_format(receipt_data['customer_planexpirydate'])}
                     """
+                    
                     # create_whatsapp_url(phone_number=number,message=msg)
                 except Exception as e:
                         apputils.snack("red",f"in receipt error --> {e}")
             else:
                 apputils.snack(color="red",msg=str(res))
-        
-        return redirect(url_for('transactions'))
+            
+            return jsonify({
+                    "status": "success",
+                    "phone": number,
+                    "message": msg
+                })
+        # return redirect(url_for('transactions'))
     else:# Clear Session
         print("Form errors:", form.errors)
         # flash("outside Validate Method", "danger")
@@ -587,47 +628,53 @@ def add_transaction(customer_details=None):
                          customers=customers, 
                          selected_customer=selected_customer)
 
+# @app.route('/redirect-whatsapp')
+# def redirect_whatsapp():
+#     phone = request.args.get("phone")
+#     message = request.args.get("message")
+#     return create_whatsapp_url(phone_number=phone, message=message)
+
 @app.route('/transactions')
 def transactions():
     if not is_login_valid():
         return redirect(url_for('login'))
     #login_with_email_password("abhijit.shinde@test.com","india@123")
     
-    page = request.args.get('page', 1, type=int)
+    # page = request.args.get('page', 1, type=int)
     transactions = get_transactionspagedata()
     # print("This is Test -->", transactions)
     # .paginate(
     #     page=page, per_page=20, error_out=False
     # )
     # Simple pagination implementation
-    per_page = 20
-    total = len(transactions)
-    start = (page - 1) * per_page
-    end = start + per_page
-    items = transactions[start:end]
+    # per_page = 20
+    # total = len(transactions)
+    # start = (page - 1) * per_page
+    # end = start + per_page
+    # items = transactions[start:end]
     
     # Create pagination object manually
-    class Pagination:
-        def __init__(self, page, per_page, total, items):
-            self.page = page
-            self.per_page = per_page
-            self.total = total
-            self.items = items
-            self.pages = (total + per_page - 1) // per_page
-            self.has_prev = page > 1
-            self.has_next = page < self.pages
-            self.prev_num = page - 1 if self.has_prev else None
-            self.next_num = page + 1 if self.has_next else None
+    # class Pagination:
+    #     def __init__(self, page, per_page, total, items):
+    #         self.page = page
+    #         self.per_page = per_page
+    #         self.total = total
+    #         self.items = items
+    #         self.pages = (total + per_page - 1) // per_page
+    #         self.has_prev = page > 1
+    #         self.has_next = page < self.pages
+    #         self.prev_num = page - 1 if self.has_prev else None
+    #         self.next_num = page + 1 if self.has_next else None
             
-        def iter_pages(self, left_edge=2, right_edge=2, left_current=2, right_current=3):
-            last = self.pages
-            for num in range(1, last + 1):
-                if num <= left_edge or \
-                   (self.page - left_current - 1 < num < self.page + right_current) or \
-                   num > last - right_edge:
-                    yield num
+    #     def iter_pages(self, left_edge=2, right_edge=2, left_current=2, right_current=3):
+    #         last = self.pages
+    #         for num in range(1, last + 1):
+    #             if num <= left_edge or \
+    #                (self.page - left_current - 1 < num < self.page + right_current) or \
+    #                num > last - right_edge:
+    #                 yield num
     
-    transactions_with_pages = Pagination(page, per_page, total, items)
+    # transactions_with_pages = Pagination(page, per_page, total, items)
     return render_template('transactions.html', transactions=transactions,
                            create_whatsapp_url=create_whatsapp_url,
                            get_receipt_link_msg=get_receipt_link_msg)
@@ -872,31 +919,30 @@ def dashboard_data():
 def locker_info():
     if not is_login_valid():
         return jsonify({'error': 'Unauthorized'}), 401
-    
+    occupied_lockers_data = []
     # Get all lockers with their assignment info
-    lockers = []
-    for i in range(1, 51):  # Assuming 50 lockers numbered 1-50
-        locker_num = f"L{i:03d}"
-        locker = Locker.query.filter_by(locker_number=locker_num).first()
-        
-        if locker and locker.is_occupied:
-            lockers.append({
-                'number': locker_num,
+    query = """
+select distinct c.name,c.phone_number,s.locker_no,s.planexpirydate FROM subscription s join "Customers" c 
+on c.id = s.customerid 
+where islocker != 0 and isactive = 1
+order by locker_no asc
+
+"""
+    occupied_lockers = run_sql(query=query)
+    if occupied_lockers != None:
+        lockers = occupied_lockers
+        for locker in lockers:
+            occupied_lockers_data.append({
+                'number': locker['locker_no'],
                 'status': 'Occupied',
-                'customer': locker.customer.full_name if locker.customer else 'Unknown',
-                'contact': locker.customer.contact_number if locker.customer else '',
-                'assigned_date': locker.assigned_date.strftime('%d/%m/%Y') if locker.assigned_date else ''
+                'customer': locker['name'],
+                'contact': locker['phone_number'],
+                'assigned_date': date_format(locker['planexpirydate'])
             })
-        else:
-            lockers.append({
-                'number': locker_num,
-                'status': 'Available',
-                'customer': '',
-                'contact': '',
-                'assigned_date': ''
-            })
-    
-    return jsonify({'lockers': lockers})
+    else:    
+        lockers = []
+    print(f"Locker details --> {occupied_lockers_data}")
+    return jsonify({'lockers': occupied_lockers_data})
 
 @app.route("/open_fastapi/<receipt_id>")
 def open_fastapi(receipt_id):

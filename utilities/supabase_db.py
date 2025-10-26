@@ -376,6 +376,7 @@ def insert_receipt_data(data):
 
     except Exception as e:
        apputils.snack("green",f"Error fetching user: {e}, Re-Login")
+
     
 
 def run_sql(query):
@@ -527,6 +528,76 @@ def get_admission_chart_data():
             apputils.snack("red", "No Internet Connection.")
         else:
             response = supabase.rpc("get_admissions_summary").execute()
+            return response.data
+
+    except Exception as e:
+       apputils.snack("red",f"Error fetching user: {e}, Re-Login")
+
+
+# Supabase QA functions---------
+def insert_receipt_dataqa(data):
+    isinternet = apputils.is_internet_available()
+
+    try:
+        user = check_user_login()
+
+        if not user:
+            session_timeout() 
+            apputils.snack("red","No active session. Please Re-login.")
+        elif not isinternet:
+            apputils.snack("red", "No Internet Connection.")
+        else:
+            response = supabase.rpc("insert_receipt_dataqa", data).execute()
+            return response.data
+
+    except Exception as e:
+       apputils.snack("green",f"Error fetching user: {e}, Re-Login")
+
+def insert_addmissionqa(data):
+    isinternet = apputils.is_internet_available()
+
+    try:
+        user = check_user_login()
+
+        if not user:
+            session_timeout() 
+            apputils.snack("red","No active session. Please Re-login.")
+        elif not isinternet:
+            apputils.snack("red", "No Internet Connection.")
+        else:
+            response = supabase.rpc("insert_addmissionsqa", data).execute()
+            return response.data
+
+    except Exception as e:
+       apputils.snack("red",f"Error fetching user: {e}, Re-Login")
+
+def create_transactionqa(txn_date,transaction_type,amount,txn_made_by, payment_method, description, transaction_for,transaction_made_to):
+    data = {
+        "txn_date": txn_date,
+        "txn_made_by": txn_made_by,
+        "customer_transaction_type": transaction_type,
+        "customer_amount": amount,
+        "customer_payment_method": payment_method,
+        "customer_description": description,
+        "customer_transaction_for": transaction_for,
+        "customer_transaction_made_to":transaction_made_to
+    }
+    apputils.snack(color="green",msg=data)
+    isinternet = apputils.is_internet_available()
+
+    try:
+        user = check_user_login()
+
+        if not user:
+            session_timeout() 
+            apputils.snack("red","No active session. Please Re-login.")
+        elif not isinternet:
+            apputils.snack("red", "No Internet Connection.")
+        else:
+            # response = supabase.rpc("insert_general_transactions", data).execute()
+            response = supabase.rpc("qainsert_general_transactions", data).execute()
+            # supabase.auth.sign_out()
+            apputils.snack(color="green",msg="Transaction Submitted Successfully!")
             return response.data
 
     except Exception as e:

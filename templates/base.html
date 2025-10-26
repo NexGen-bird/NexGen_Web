@@ -1,19 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>{% block title %}NEXGEN Study Centre{% endblock %}</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <head>
+    <meta charset="UTF-8" />
+    <title>{% block title %}NEXGEN Study Centre{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Bootstrap 5 CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <!-- Font Awesome -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <!-- Bootstrap 5 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet" />
+    <!-- Font Awesome -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet" />
 
-  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" />
-  <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/presplash.png') }}">
+    <link href="{{ url_for('static', filename='css/style.css') }}"
+      rel="stylesheet" />
+    <link rel="icon" type="image/png"
+      href="{{ url_for('static', filename='images/presplash.png') }}">
 
-  <style>
+    <style>
     :root { --sidebar-w: 250px; }
 
     body { overflow-x: hidden; }
@@ -74,92 +80,165 @@
 
     .nav-link { color: #20b2aa !important; }
     .nav-link:hover { background: rgba(32,178,170,0.1); }
+    :root {
+      --gradient-primary: linear-gradient(135deg, #37b7c8 25%, #4fe378 50%, #e5f455 100%);
+    }
+    /* ===== Loader Overlay ===== */
+    #loader-wrapper {
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.95);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      transition: opacity 0.4s ease;
+    }
+    #loader-wrapper.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* ===== Your custom animated loader ===== */
+    .loader {
+      width: fit-content;
+      font-size: 60px;
+      font-family: sans-serif;
+      font-weight: bold;
+      text-transform: uppercase;
+      color: #0000;
+      -webkit-text-stroke: 0.5px #000;
+      background:
+        radial-gradient(0.71em at 50% 1em, #37b7c8 99%, #37b7c8 101%,#37b7c8 10%) calc(50% - 1em) 1em/2em 200% repeat-x text,
+        radial-gradient(0.71em at 50% -0.5em, #37b7c8 99%, #37b7c8 101%,#37b7c8 10%) 50% 1.5em/2em 200% repeat-x text;
+      animation:
+        l10-0 0.8s linear infinite alternate,
+        l10-1 4s linear infinite;
+    }
+
+
+    .loader:before {
+      content: "NexGen";
+    }
+
+    /* ===== Animations ===== */
+    @keyframes l10-0 {
+      to { background-position-x: 50%, calc(50% + 1em); }
+    }
+    @keyframes l10-1 {
+      to { background-position-y: -0.5em, 0; }
+    } 
   </style>
 
-  {% block extra_css %}{% endblock %}
-</head>
-<body>
-  
-{% if session.user_id %}
-  <!-- Navbar -->
-  <nav class="navbar navbar-light bg-light shadow-sm">
-    <div class="container-fluid">
-      <button class="btn han_bg" id="sidebarToggle" aria-label="Open menu" aria-expanded="false" aria-controls="sidebar">
-        <i class="fas fa-bars"></i>
-      </button>
-      <span class="navbar-brand ms-2">{{session.userName}}</span>
-      <span class="navbar-brand ms-2"><img src="{{ url_for('static', filename='images/nexgen-splash.png') }}" alt="NEXGEN" height="" width="160" class="me-2" /></span>
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body>
+    <!-- ===== Global Loader ===== -->
+    <div id="loader-wrapper">
+      <div class="loader"></div>
     </div>
-  </nav>
-  <!-- Flash Messages -->
-  <div class="container mt-3">
-    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if session.user_id %}
+    <!-- Navbar -->
+    <nav class="navbar navbar-light bg-light shadow-sm">
+      <div class="container-fluid">
+        <button class="btn han_bg" id="sidebarToggle" aria-label="Open menu"
+          aria-expanded="false" aria-controls="sidebar">
+          <i class="fas fa-bars"></i>
+        </button>
+        <span class="navbar-brand ms-2">{{session.userName}}</span>
+        <span class="navbar-brand ms-2"><img
+            src="{{ url_for('static', filename='images/nexgen-splash.png') }}"
+            alt="NEXGEN" height width="160" class="me-2" /></span>
+      </div>
+    </nav>
+    <!-- Flash Messages -->
+    <div class="container mt-3">
+      {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-          </div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-  </div>
-
-  <!-- Sidebar -->
-  <div class="sidebar" id="sidebar" role="navigation" aria-hidden="true">
-    <div class="sidebar-header">
-      <img src="{{ url_for('static', filename='images/nexgen-splash.png') }}" alt="NEXGEN" height="50" class="me-2" />
-      <button class="btn btn-sm btn-light text-dark" id="sidebarClose" aria-label="Close menu">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
-    <ul class="nav flex-column mt-5">
-      <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
-      <li class="nav-item"><a class="nav-link" href="{{ url_for('admission') }}"><i class="fas fa-user-plus me-2"></i>Admission</a></li>
-      <li class="nav-item"><a class="nav-link" href="{{ url_for('add_transaction') }}"><i class="fas fa-plus-circle me-2"></i>Add Transaction</a></li>
-      <li class="nav-item"><a class="nav-link" href="{{ url_for('customers') }}"><i class="fas fa-users me-2"></i>Customers</a></li>
-      <li class="nav-item"><a class="nav-link" href="{{ url_for('transactions') }}"><i class="fas fa-receipt me-2"></i>Transactions</a></li>
-      <li class="nav-item"><a class="nav-link" href="{{ url_for('investment_summary') }}"><i class="fas fa-chart-line me-2"></i>Investments</a></li>
-      <li class="nav-item"><a class="nav-link" href="{{ url_for('subcriptions') }}"><i class="fa-solid fa-file-circle-check"></i> Subcriptions</a></li>
-      <li class="nav-item"><a class="nav-link" href="{{ url_for('logoutuser') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
-    </ul>
-  </div>
-
-  <!-- Overlay -->
-  <div id="overlay"></div>
-
-  <!-- Main wrapper -->
-  <div class="main-content p-4" id="mainContent">
-{% else %}
-{% block flash_messages %}
-<div class="container mt-3">
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
       {% for category, message in messages %}
-        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+      <div
+        class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show"
+        role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+      {% endfor %}
+      {% endif %}
+      {% endwith %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar" role="navigation" aria-hidden="true">
+      <div class="sidebar-header">
+        <img src="{{ url_for('static', filename='images/nexgen-splash.png') }}"
+          alt="NEXGEN" height="50" class="me-2" />
+        <button class="btn btn-sm btn-light text-dark" id="sidebarClose"
+          aria-label="Close menu">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <ul class="nav flex-column mt-5">
+        <li class="nav-item"><a class="nav-link"
+            href="{{ url_for('dashboard') }}"><i
+              class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link"
+            href="{{ url_for('admission') }}"><i class="fas fa-user-plus me-2"></i>Admission</a></li>
+        <li class="nav-item"><a class="nav-link"
+            href="{{ url_for('add_transaction') }}"><i
+              class="fas fa-plus-circle me-2"></i>Add Transaction</a></li>
+        <li class="nav-item"><a class="nav-link"
+            href="{{ url_for('customers') }}"><i class="fas fa-users me-2"></i>Customers</a></li>
+        <li class="nav-item"><a class="nav-link"
+            href="{{ url_for('transactions') }}"><i class="fas fa-receipt me-2"></i>Transactions</a></li>
+        <li class="nav-item"><a class="nav-link"
+            href="{{ url_for('investment_summary') }}"><i
+              class="fas fa-chart-line me-2"></i>Investments</a></li>
+        <li class="nav-item"><a class="nav-link"
+            href="{{ url_for('subcriptions') }}"><i
+              class="fa-solid fa-file-circle-check"></i> Subcriptions</a></li>
+        <li class="nav-item"><a class="nav-link"
+            href="{{ url_for('logoutuser') }}"><i
+              class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+      </ul>
+    </div>
+
+    <!-- Overlay -->
+    <div id="overlay"></div>
+
+    <!-- Main wrapper -->
+    <div class="main-content p-4" id="mainContent">
+      {% else %}
+      {% block flash_messages %}
+      <div class="container mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div
+          class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show"
+          role="alert">
           {{ message }}
           <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
-</div>
-{% endblock %}
-  <!-- Guest (e.g., login) -->
-  <div class="container py-4">
-{% endif %}
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+      </div>
+      {% endblock %}
+      <!-- Guest (e.g., login) -->
+      <div class="container py-4">
+        {% endif %}
 
-    {% block content %}{% endblock %}
+        {% block content %}{% endblock %}
 
-  </div> <!-- closes main-content or container -->
+      </div> <!-- closes main-content or container -->
 
-  
-  <!-- JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+      <!-- JS -->
+      <script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
-  <script>
+      <script>
     const toggleBtn   = document.getElementById("sidebarToggle");
     const closeBtn    = document.getElementById("sidebarClose");
     const sidebar     = document.getElementById("sidebar");
@@ -206,7 +285,38 @@
       }
     });
   </script>
+      <script>
+    // Hide loader after full page load
+    window.addEventListener("load", () => {
+      const loader = document.getElementById("loader-wrapper");
+      loader.classList.add("hidden");
+      setTimeout(() => loader.style.display = "none", 400);
+    });
 
-  {% block extra_js %}{% endblock %}
-</body>
-</html>
+    // Functions for manual control (for API calls etc.)
+    window.showLoader = () => {
+      const loader = document.getElementById("loader-wrapper");
+      loader.style.display = "flex";
+      loader.classList.remove("hidden");
+    };
+    window.hideLoader = () => {
+      const loader = document.getElementById("loader-wrapper");
+      loader.classList.add("hidden");
+      setTimeout(() => loader.style.display = "none", 400);
+    };
+
+    // Optional: Show loader on link navigation
+    document.addEventListener("DOMContentLoaded", () => {
+      const loader = document.getElementById("loader-wrapper");
+      document.querySelectorAll("a").forEach(link => {
+        link.addEventListener("click", e => {
+          if (link.target === "_blank" || link.href.startsWith("mailto:")) return;
+          loader.style.display = "flex";
+          loader.classList.remove("hidden");
+        });
+      });
+    });
+  </script>
+      {% block extra_js %}{% endblock %}
+    </body>
+  </html>

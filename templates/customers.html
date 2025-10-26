@@ -141,7 +141,7 @@
                                                 
                                             {% endif %}
                                             
-                                            <a href="{{ url_for('add_transaction', customer_id=customer.id) }}" 
+                                            <a href="{{ url_for('redirect_transaction', customer_id=customer.id) }}" 
                                                class="btn btn-outline-success" title="Add Transaction">
                                                 <i class="fas fa-plus-circle"></i>
                                             </a>

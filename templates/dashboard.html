@@ -335,7 +335,12 @@ function showLockerModal() {
     fetch('/api/lockers')
         .then(response => response.json())
         .then(data => {
+            if (data.lockers && data.lockers.length > 0) {
             displayLockerInfo(data.lockers);
+            } 
+            else {
+                document.getElementById('lockerInfo').innerHTML = '<div class="alert alert-danger">No Occupied Locker Available.</div>';
+            }
         })
         .catch(error => {
             console.error('Error loading locker data:', error);
@@ -345,7 +350,7 @@ function showLockerModal() {
 
 function displayLockerInfo(lockers) {
     const container = document.getElementById('lockerInfo');
-    let html = '<div class="table-responsive"><table class="table table-hover"><thead class="table-primary"><tr><th>Locker</th><th>Status</th><th>Customer</th><th>Contact</th><th>Assigned Date</th></tr></thead><tbody>';
+    let html = '<div class="table-responsive"><table class="table table-hover"><thead class="table-primary"><tr><th>Locker</th><th>Status</th><th>Customer</th><th>Contact</th><th>Expiry Date</th></tr></thead><tbody>';
     
     lockers.forEach(locker => {
         const statusClass = locker.status === 'Available' ? 'text-success' : 'text-danger';
