@@ -447,7 +447,7 @@ def add_transaction(customer_details=None):
     if not is_login_valid():
         return redirect(url_for('login'))
     customer_details = session.get('admission_form_details')
-    number = "8108236131"
+    number = "918108236131"
     form = TransactionForm()
     customers = (run_sql(f"""SELECT name,phone_number From "Customers" """))
     
@@ -529,7 +529,7 @@ def add_transaction(customer_details=None):
                     session.pop('transaction_type', None)
                     try:
                         msg = f"""
-        *TEST ENTRY FROM WEBSIDE*
+        *ENTRY FROM WEBSIDE*
         Transaction Type - OUT/Expense
         Transaction Date - {txn_date}
         Transaction Made By - {(form.txn_made_by.data.lower()).strip()}
