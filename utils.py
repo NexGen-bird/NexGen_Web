@@ -46,18 +46,19 @@ If you face any issues, feel free to reply to this message.
 Thank you for choosing NexGen Self Study Center!
 """
     return final_message
-def get_whatsapp_expiry_reminder(customer_name, days_left):
+def get_whatsapp_expiry_reminder(customer_name, expiry_date):
     """Generate a predefined WhatsApp message for expiry reminders"""
     message = f"""Dear {customer_name},
 
-⚠️ Subscription Expiry Reminder
+Subscription Expiry Reminder
 
-Your NEXGEN Study Centre subscription expires in {days_left} days.
+This is a reminder that your NexGen Study Center subscription is expiring on *{expiry_date}*.
 
-🔄 To continue your studies without interruption, please renew your subscription.
-📞 Contact us for renewal options.
+ To avoid any interruption in your study schedule, please renew your subscription at the earliest.
 
-Thank you for choosing NEXGEN Study Centre! 🎓
+You can reply to this message or contact us directly for assistance.
+
+Thank you for choosing NexGen Study Center! 
 
 Best regards,
 NEXGEN Study Centre Team"""

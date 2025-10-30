@@ -131,6 +131,7 @@ SUM(CASE WHEN transaction_type = 'OUT' THEN amount ELSE 0 END) AS total_expenses
         "pnl_amount": partial(get_net_profit,month_start,month_end),
         "expired_count": partial(run_sql,expired_count),
         "expiring_members": partial(run_sql,exp_members_query),
+        "monthly_cash_upi":partial(get_monthly_cash_upi,month_start,month_end),
     }
 
     results = {}
@@ -163,12 +164,17 @@ SUM(CASE WHEN transaction_type = 'OUT' THEN amount ELSE 0 END) AS total_expenses
         pnl_amount = api_results['pnl_amount']
         _expired_count = api_results['expired_count']
         expiring_members = api_results['expiring_members'] 
-
-
+        monthly_cash_upi = api_results['monthly_cash_upi']
+        
+        if monthly_cash_upi != None:
+            payment_classification = " + ".join(f"{item['payment_method_type']}: {item['net_profit']}" for item in monthly_cash_upi)
+        else:
+            payment_classification = ("Cash: 0 + UPI: 0")
         dash_active_members = str("0" if _active_members[0]['count']==None else _active_members[0]['count'])
         
         dash_pnl_amount = str(0 if pnl_amount==None else apputils.format_number(float(pnl_amount)))
-        dash_pnl_amount_absolute = str("{} {}".format("₹",format_inr(0 if pnl_amount==None else pnl_amount)))
+        dash_pnl_amount_absolute = str("{} {} ({})".format("₹",format_inr(0 if pnl_amount==None else pnl_amount),payment_classification))
+        # dash_monthly_cash_upi = str("{} {}".format("₹",format_inr(0 if pnl_amount==None else monthly_cash_upi)))
         
         if weekendcount:# weekend batch available seats
             print("Weekend batch --> ",weekendcount[0]['count'])
@@ -524,7 +530,7 @@ def add_transaction(customer_details=None):
                 # flash(f"Txn Response --> {res}", 'danger')
                 result = res.split(":")[0]
                 if result.strip()=="Pass":
-                    apputils.snack(color="green",text="Transaction Submitted Successfully!")
+                    apputils.snack(color="green",msg="Transaction Submitted Successfully!")
                     session.pop('admission_form_details', None)
                     session.pop('transaction_type', None)
                     try:
@@ -532,18 +538,24 @@ def add_transaction(customer_details=None):
         *ENTRY FROM WEBSIDE*
         Transaction Type - OUT/Expense
         Transaction Date - {txn_date}
-        Transaction Made By - {(form.txn_made_by.data.lower()).strip()}
-        Transaction Made To - {(form.txn_made_to.data.lower()).strip()}
+        Transaction Made By - {(form.txn_made_by.data.lower())}
+        Transaction Made To - {(form.txn_made_to.data.lower())}
         Amount - {form.amount.data}
         Mode of Transaction - {form.payment_method.data}
         Description - {form.description.data.strip()}
 
         """
+                        print(msg)
                         # create_whatsapp_url(phone_number=number,message=msg)
+                        return jsonify({
+                            "status": "success",
+                            "phone": number,
+                            "message": msg
+                    })
                     except Exception as e:
-                                apputils.snack("red",f"{e}")
+                            apputils.snack("red",f"{e}")
             except Exception as e:
-                                apputils.snack("red",f"{e}")
+                apputils.snack("red",f"{e}")
         else:
             if customer_details:
                 admission_form_data.update(customer_details)
@@ -745,35 +757,35 @@ def customers():
         customers_data = all_customers
         
         
-        # Simple pagination implementation
-        per_page = 30
-        total = len(customers_data)
-        start = (page - 1) * per_page
-        end = start + per_page
-        items = customers_data[start:end]
+        # # Simple pagination implementation
+        # per_page = 30
+        # total = len(customers_data)
+        # start = (page - 1) * per_page
+        # end = start + per_page
+        # items = customers_data[start:end]
         
-        # Create pagination object manually
-        class Pagination:
-            def __init__(self, page, per_page, total, items):
-                self.page = page
-                self.per_page = per_page
-                self.total = total
-                self.items = items
-                self.pages = (total + per_page - 1) // per_page
-                self.has_prev = page > 1
-                self.has_next = page < self.pages
-                self.prev_num = page - 1 if self.has_prev else None
-                self.next_num = page + 1 if self.has_next else None
+        # # Create pagination object manually
+        # class Pagination:
+        #     def __init__(self, page, per_page, total, items):
+        #         self.page = page
+        #         self.per_page = per_page
+        #         self.total = total
+        #         self.items = items
+        #         self.pages = (total + per_page - 1) // per_page
+        #         self.has_prev = page > 1
+        #         self.has_next = page < self.pages
+        #         self.prev_num = page - 1 if self.has_prev else None
+        #         self.next_num = page + 1 if self.has_next else None
                 
-            def iter_pages(self, left_edge=2, right_edge=2, left_current=2, right_current=3):
-                last = self.pages
-                for num in range(1, last + 1):
-                    if num <= left_edge or \
-                    (self.page - left_current - 1 < num < self.page + right_current) or \
-                    num > last - right_edge:
-                        yield num
+        #     def iter_pages(self, left_edge=2, right_edge=2, left_current=2, right_current=3):
+        #         last = self.pages
+        #         for num in range(1, last + 1):
+        #             if num <= left_edge or \
+        #             (self.page - left_current - 1 < num < self.page + right_current) or \
+        #             num > last - right_edge:
+        #                 yield num
         
-        customers = Pagination(page, per_page, total, items)
+        # customers = Pagination(page, per_page, total, items)
         
         return render_template('customers.html', 
                             customers=customers_data,

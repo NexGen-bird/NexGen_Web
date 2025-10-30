@@ -134,7 +134,7 @@
                                             
                                             {% else %}
                                                 <!-- Expired customer - renewal message -->
-                                                <a href="{{ create_whatsapp_url(customer.phone_number, get_whatsapp_expiry_reminder(customer.name, 'expired')) }}" 
+                                                <a href="{{ create_whatsapp_url(customer.phone_number, get_whatsapp_expiry_reminder(customer.name, customer_data['planexpirydate']|format_date)) }}" 
                                                    class="btn btn-whatsapp" target="_blank" title="Renewal Reminder">
                                                     <i class="fab fa-whatsapp"></i>
                                                 </a>

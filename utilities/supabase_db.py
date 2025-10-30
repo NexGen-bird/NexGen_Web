@@ -165,7 +165,7 @@ def create_transaction(txn_date,transaction_type,amount,txn_made_by, payment_met
         "customer_transaction_for": transaction_for,
         "customer_transaction_made_to":transaction_made_to
     }
-    apputils.snack(color="green",msg=data)
+    # apputils.snack(color="green",msg=data)
     isinternet = apputils.is_internet_available()
 
     try:
@@ -180,7 +180,7 @@ def create_transaction(txn_date,transaction_type,amount,txn_made_by, payment_met
             # response = supabase.rpc("insert_general_transactions", data).execute()
             response = supabase.rpc("insert_general_transactions", data).execute()
             # supabase.auth.sign_out()
-            apputils.snack(color="green",msg="Transaction Submitted Successfully!")
+            # apputils.snack(color="green",msg="Transaction Submitted Successfully!")
             return response.data
 
     except Exception as e:
@@ -276,6 +276,21 @@ def get_net_profit(start_date,end_date):
         
         else:
             response = supabase.rpc("get_net_profit", {"start_date": start_date, "end_date": end_date}).execute()
+            return response.data
+
+    except Exception as e:
+       return {"error": f"Error fetching data: {e}"}
+
+def get_monthly_cash_upi(start_date,end_date):
+    isinternet = apputils.is_internet_available()
+    try:
+        user = check_user_login()
+
+        if not user:
+            session_timeout()
+        
+        else:
+            response = supabase.rpc("get_monthly_cash_upi", {"start_date": start_date, "end_date": end_date}).execute()
             return response.data
 
     except Exception as e:
@@ -597,7 +612,7 @@ def create_transactionqa(txn_date,transaction_type,amount,txn_made_by, payment_m
             # response = supabase.rpc("insert_general_transactions", data).execute()
             response = supabase.rpc("qainsert_general_transactions", data).execute()
             # supabase.auth.sign_out()
-            apputils.snack(color="green",msg="Transaction Submitted Successfully!")
+            # apputils.snack(color="green",msg="Transaction Submitted Successfully!")
             return response.data
 
     except Exception as e:
