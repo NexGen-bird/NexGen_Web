@@ -2,6 +2,37 @@ from supabase_lib.supabase_config import supabase
 from supabase_lib.supabase_auth import *
 from flask import redirect, url_for
 
+from PIL import Image,ImageOps
+import io
+# Compress image method..
+def compress_image_to_jpg(
+    imagepath,
+    max_width=800,
+    quality=45
+):
+
+    # 🔧 FIX ORIENTATION FIRST
+    img = Image.open(imagepath)
+    img = ImageOps.exif_transpose(img)
+    img = img.convert("RGB")
+    # img = Image.open(imagepath).convert("RGB")
+
+    if img.width > max_width:
+        ratio = max_width / img.width
+        new_size = (max_width, int(img.height * ratio))
+        img = img.resize(new_size, Image.LANCZOS)
+
+    buffer = io.BytesIO()
+    img.save(
+        buffer,
+        format="JPEG",
+        quality=quality,
+        optimize=True,
+        subsampling=2  # 4:2:0
+    )
+    buffer.seek(0)
+
+    return buffer
 
 # Create a new customer
 def check_user_login():
@@ -409,7 +440,7 @@ def run_sql(query):
        apputils.snack("red",f"Issue --> {e}")
        print(f"Issue --> {e}")
        return {"error": f"Error fetching data: {e}"}
-def upload_image(imagepath,imagename):
+def upload_image_old(imagepath,imagename):
     isinternet = apputils.is_internet_available()
 
     try:
@@ -435,6 +466,38 @@ def upload_image(imagepath,imagename):
 
     except Exception as e:
        apputils.snack("red",f"Error fetching user: {e}, Re-Login")
+
+def upload_image(imagepath,imagename):
+    isinternet = apputils.is_internet_available()
+
+    try:
+        user = check_user_login()
+
+        if not user:
+            session_timeout()    
+            apputils.snack("red","No active session. Please Re-login.")
+        elif not isinternet:
+            apputils.snack("red", "No Internet Connection.")
+        else:
+            image_buffer = compress_image_to_jpg(imagepath)
+
+        response = (
+            supabase.storage
+            .from_("customer_images")
+            .upload(
+                file=image_buffer.getvalue(),
+                path=f"{imagename}.jpg",
+                file_options={
+                    "content-type": "image/jpeg",
+                    "upsert": "true"
+                }
+            )
+        )
+
+        return response
+
+    except Exception as e:
+       apputils.snack("red",f"Error fetching user: {e}, Re-Login")
     
 def get_profile_img(imagename):
     isinternet = apputils.is_internet_available()
@@ -451,7 +514,7 @@ def get_profile_img(imagename):
             response = (
             supabase.storage
             .from_("customer_images")
-            .get_public_url(f"{imagename}.png")
+            .get_public_url(f"{imagename}.jpg")
             )
             return response
 

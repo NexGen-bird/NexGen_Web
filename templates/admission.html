@@ -8,165 +8,238 @@
         <div class="col-lg-8">
             <div class="card border-0 shadow-lg">
                 <div class="card-header bg-gradient-primary text-white">
-                    <h3 class="mb-0"><i class="fas fa-user-plus me-2"></i>Student Admission Form</h3>
+                    <h3 class="mb-0"><i
+                            class="fas fa-user-plus me-2"></i>Student Admission
+                        Form</h3>
                 </div>
                 <div class="card-body p-4">
-                    <form method="POST" id="admissionForm">
+                    <form method="POST" id="admissionForm" enctype="multipart/form-data">
                         {{ form.hidden_tag() }}
-                        
+
                         <div class="row g-3">
                             <!-- Contact Number -->
                             <div class="col-md-6 position-relative">
-                                <label for="{{ form.contact_number.id }}" class="form-label fw-semibold">
-                                    <i class="fas fa-phone me-1 text-primary"></i>Contact Number *
+                                <label for="{{ form.contact_number.id }}"
+                                    class="form-label fw-semibold">
+                                    <i
+                                        class="fas fa-phone me-1 text-primary"></i>Contact
+                                    Number *
                                 </label>
-                                {{ form.contact_number(class="form-control", required=true, id="contactNumber") }}
+                                {{ form.contact_number(class="form-control",
+                                required=true, id="contactNumber") }}
                                 <!-- Dropdown container -->
-                                <div id="contactDropdown" 
-                                     class="list-group position-absolute w-100 shadow-sm" 
-                                     style="z-index: 1000; display: none;">
+                                <div id="contactDropdown"
+                                    class="list-group position-absolute w-100 shadow-sm"
+                                    style="z-index: 1000; display: none;">
                                 </div>
                                 {% if form.contact_number.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.contact_number.errors %}
-                                            <div>{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.contact_number.errors
+                                    %}
+                                    <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
                                 {% endif %}
                             </div>
 
                             <!-- Full Name -->
                             <div class="col-md-6 position-relative">
-                                <label for="{{ form.full_name.id }}" class="form-label fw-semibold">
-                                    <i class="fas fa-user me-1 text-primary"></i> Full Name *
+                                <label for="{{ form.full_name.id }}"
+                                    class="form-label fw-semibold">
+                                    <i
+                                        class="fas fa-user me-1 text-primary"></i>
+                                    Full Name *
                                 </label>
-                                <input type="text" 
-                                       id="full_name" 
-                                       name="full_name" 
-                                       class="form-control" 
-                                       required 
-                                       autocomplete="off">
-                            
+                                <input type="text"
+                                    id="full_name"
+                                    name="full_name"
+                                    class="form-control"
+                                    required
+                                    autocomplete="off">
+
                                 <!-- Dropdown container -->
-                                <div id="nameDropdown" 
-                                     class="list-group position-absolute w-100 shadow-sm" 
-                                     style="z-index: 1000; display: none;">
+                                <div id="nameDropdown"
+                                    class="list-group position-absolute w-100 shadow-sm"
+                                    style="z-index: 1000; display: none;">
                                 </div>
-                            
+
                                 {% if form.full_name.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.full_name.errors %}
-                                            <div>{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.full_name.errors %}
+                                    <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
                                 {% endif %}
                             </div>
-                            
 
                             <!-- Date of Birth -->
                             <div class="col-md-6">
-                                <label for="{{ form.date_of_birth.id }}" class="form-label fw-semibold">
-                                    <i class="fas fa-calendar me-1 text-primary"></i>Date of Birth *
+                                <label for="{{ form.date_of_birth.id }}"
+                                    class="form-label fw-semibold">
+                                    <i
+                                        class="fas fa-calendar me-1 text-primary"></i>Date
+                                    of Birth *
                                 </label>
-                                {{ form.date_of_birth(class="form-control", id="date_of_birth", required=true, onchange="calculateAge()") }}
+                                {{ form.date_of_birth(class="form-control",
+                                id="date_of_birth", required=true,
+                                onchange="calculateAge()") }}
                                 {% if form.date_of_birth.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.date_of_birth.errors %}
-                                            <div>{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.date_of_birth.errors %}
+                                    <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
                                 {% endif %}
                             </div>
 
                             <!-- Age (Auto-calculated) -->
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">
-                                    <i class="fas fa-birthday-cake me-1 text-primary"></i>Age
+                                    <i
+                                        class="fas fa-birthday-cake me-1 text-primary"></i>Age
                                 </label>
-                                <input type="text" class="form-control" id="ageDisplay" readonly placeholder="Auto-calculated">
+                                <input type="text" class="form-control"
+                                    id="ageDisplay" readonly
+                                    placeholder="Auto-calculated">
                             </div>
 
                             <!-- Gender -->
                             <div class="col-md-6">
-                                <label for="{{ form.gender.id }}" class="form-label fw-semibold">
-                                    <i class="fas fa-venus-mars me-1 text-primary"></i>Gender *
+                                <label for="{{ form.gender.id }}"
+                                    class="form-label fw-semibold">
+                                    <i
+                                        class="fas fa-venus-mars me-1 text-primary"></i>Gender
+                                    *
                                 </label>
-                                {{ form.gender(class="form-select", required=true, id="gender") }}
+                                {{ form.gender(class="form-select",
+                                required=true, id="gender") }}
                                 {% if form.gender.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.gender.errors %}
-                                            <div>{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.gender.errors %}
+                                    <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
                                 {% endif %}
                             </div>
 
                             <!-- Email -->
                             <div class="col-md-6">
-                                <label for="{{ form.email.id }}" class="form-label fw-semibold">
-                                    <i class="fas fa-envelope me-1 text-primary"></i>Email Address *
+                                <label for="{{ form.email.id }}"
+                                    class="form-label fw-semibold">
+                                    <i
+                                        class="fas fa-envelope me-1 text-primary"></i>Email
+                                    Address *
                                 </label>
-                                {{ form.email(class="form-control", required=true, type="email", id="email") }}
+                                {{ form.email(class="form-control",
+                                required=true, type="email", id="email") }}
                                 {% if form.email.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.email.errors %}
-                                            <div>{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.email.errors %}
+                                    <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
                                 {% endif %}
                             </div>
 
                             <!-- Study Option -->
                             <div class="col-md-6">
-                                <label for="{{ form.study_option.id }}" class="form-label fw-semibold">
-                                    <i class="fas fa-graduation-cap me-1 text-primary"></i>Study Option *
+                                <label for="{{ form.study_option.id }}"
+                                    class="form-label fw-semibold">
+                                    <i
+                                        class="fas fa-graduation-cap me-1 text-primary"></i>Study
+                                    Option *
                                 </label>
-                                {{ form.study_option(class="form-select", required=true,id="study_option") }}
+                                {{ form.study_option(class="form-select",
+                                required=true,id="study_option") }}
                                 {% if form.study_option.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.study_option.errors %}
-                                            <div>{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.study_option.errors %}
+                                    <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
                                 {% endif %}
+                            </div>
+
+                            <!-- Student Image Upload -->
+                            <div class="col-md-6">
+                                <label for="{{ form.student_image.id }}"
+                                    class="form-label fw-semibold">
+                                    <i
+                                        class="fas fa-camera me-1 text-primary"></i>Student
+                                    Photo
+                                </label>
+
+                                {{ form.student_image(
+                                class="form-control",
+                                accept="image/*",
+                                onchange="previewImage(this)"
+                                ) }}
+
+                                {% if form.student_image.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.student_image.errors %}
+                                    <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Image Preview -->
+                            <div class="col-md-6 text-center">
+                                <img
+                                    id="imagePreview"
+                                    src
+                                    class="img-thumbnail d-none"
+                                    style="max-height: 180px;"
+                                    alt="Preview">
                             </div>
 
                             <!-- Education Details -->
                             <div class="col-12">
-                                <label for="{{ form.education_details.id }}" class="form-label fw-semibold">
-                                    <i class="fas fa-book me-1 text-primary"></i>Education Details
+                                <label for="{{ form.education_details.id }}"
+                                    class="form-label fw-semibold">
+                                    <i
+                                        class="fas fa-book me-1 text-primary"></i>Education
+                                    Details
                                 </label>
-                                {{ form.education_details(class="form-control", rows="2",id="education_details") }}
+                                {{ form.education_details(class="form-control",
+                                rows="2",id="education_details") }}
                                 {% if form.education_details.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.education_details.errors %}
-                                            <div>{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
+                                <div class="text-danger small mt-1">
+                                    {% for error in
+                                    form.education_details.errors %}
+                                    <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
                                 {% endif %}
                             </div>
 
                             <!-- Address -->
                             <div class="col-12">
-                                <label for="{{ form.address.id }}" class="form-label fw-semibold">
-                                    <i class="fas fa-map-marker-alt me-1 text-primary"></i>Address *
+                                <label for="{{ form.address.id }}"
+                                    class="form-label fw-semibold">
+                                    <i
+                                        class="fas fa-map-marker-alt me-1 text-primary"></i>Address
+                                    *
                                 </label>
-                                {{ form.address(class="form-control", rows="3", required=true, id="address") }}
+                                {{ form.address(class="form-control", rows="3",
+                                required=true, id="address") }}
                                 {% if form.address.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {% for error in form.address.errors %}
-                                            <div>{{ error }}</div>
-                                        {% endfor %}
-                                    </div>
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.address.errors %}
+                                    <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
                                 {% endif %}
                             </div>
 
-                            
-
                             <!-- Submit Button -->
                             <div class="col-12 text-center">
-                                <button type="submit" class="btn btn-gradient-primary btn-lg px-5">
-                                    <i class="fas fa-paper-plane me-2"></i>Submit Admission
+                                <button type="submit"
+                                    class="btn btn-gradient-primary btn-lg px-5">
+                                    <i
+                                        class="fas fa-paper-plane me-2"></i>Submit
+                                    Admission
                                 </button>
                             </div>
                         </div>
@@ -179,6 +252,23 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+function previewImage(input) {
+    const preview = document.getElementById("imagePreview");
+
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+            preview.src = e.target.result;
+            preview.classList.remove("d-none");
+        };
+
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+
 <script>
 function calculateAge() {
     const birthDate = document.getElementById('date_of_birth').value;
@@ -341,5 +431,4 @@ function calculateAge() {
     });
 </script>
 
-    
 {% endblock %}

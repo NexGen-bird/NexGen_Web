@@ -4,6 +4,7 @@
 
 {% block content %}
 <div class="container-fluid">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <div class="row">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
@@ -61,8 +62,8 @@
                                             <div class="customer-avatar me-3">
                                                 <div class="bg-gradient-primary rounded-circle d-flex align-items-center justify-content-center" 
                                                      style="width: 40px; height: 40px;">
-                                                    <!-- <img class="rounded-circle d-flex align-items-center justify-content-center" src="static/images/male.jpg"> -->
-                                                    <span class="text-white fw-bold">{{ customer['name'].upper()[0] }}</span>
+                                                    <img class="rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;" src="{{ customer['profile_image'].replace('assets/img', '/static/images') if 'assets' in customer['profile_image'] else customer['profile_image'] }}">
+                                                    <!-- <span class="text-white fw-bold">{{ customer['name'].upper()[0] }}</span> -->
                                                 </div>
                                             </div>
                                             <div>
@@ -266,8 +267,29 @@ function viewCustomerDetails(customerId) {
             container.innerHTML = `
                 <div class="row">
                     <div class="col-md-4 text-center">
-                        <img src="${data.profile_image || '/static/images/default-profile.png'}" 
-                             alt="Profile Picture" class="img-fluid rounded-circle mb-3" width="120">
+                        <div class="profile-container">
+                            <img src="${data.profile_image || '/static/images/default-profile.png'}"
+                                class="profile-image"
+                                id="profilePreview"
+                                alt="Profile">
+                            <!-- Loader Overlay -->
+                            <div class="image-loader" id="imageLoader">
+                                <div class="spinner-border text-light" role="status"></div>
+                            </div>
+                            <!-- Overlay -->
+                            <div class="image-overlay">
+                                <label for="profileUpload" class="upload-label">
+                                    <i class="fa fa-camera"></i>
+                                </label>
+                            </div>
+
+                            <input type="file" 
+                                id="profileUpload" 
+                                data-userid="${data.id}" 
+                                data-phone="${data.phone_number}" 
+                                accept="image/*" hidden>
+                        </div>
+
                         <h5>${data.name}</h5>
                         <p class="text-muted">${data.plan}</p>
                     </div>
@@ -283,7 +305,9 @@ function viewCustomerDetails(customerId) {
                     </div>
                 </div>
             `;
+            
         })
+        
         .catch(error => {
             document.getElementById("customerProfileContent").innerHTML =
                 '<div class="alert alert-danger">Error loading profile</div>';
@@ -300,6 +324,53 @@ function editCustomer(customerId) {
 document.getElementById('searchInput').addEventListener('keyup', function(event) {
     if (event.key === 'Enter') {
         filterCustomers();
+    }
+});
+// Profile image upload (NO preview version)
+document.addEventListener("change", function (e) {
+
+    if (e.target && e.target.id === "profileUpload") {
+
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const userId = e.target.dataset.userid;
+        const phoneNumber = e.target.dataset.phone;
+        const container = e.target.closest(".profile-container");
+        const loader = container.querySelector(".image-loader");
+
+        // SHOW LOADER
+        loader.style.display = "flex";
+        container.classList.add("uploading");
+
+        const formData = new FormData();
+        formData.append("profile_image", file);
+        formData.append("user_id", userId);
+        formData.append("phone_number", phoneNumber);
+
+        fetch("/upload-profile", {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.json())
+        .then(result => {
+            loader.style.display = "none";
+            container.classList.remove("uploading");
+            if (result.success) {
+                // Update image after upload
+                const img = document.getElementById("profilePreview");
+                if (img) {
+                    img.src = result.new_url + "?t=" + new Date().getTime();
+                }
+            } else {
+                alert("Upload failed");
+            }
+        })
+        .catch(err => {
+            loader.style.display = "none";
+            container.classList.remove("uploading");
+            alert("Upload error");
+        });
     }
 });
 </script>

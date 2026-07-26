@@ -1,4 +1,5 @@
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileAllowed
 from wtforms import StringField, PasswordField, SubmitField, DateField, SelectField, TextAreaField, IntegerField, IntegerRangeField, FloatField, BooleanField, SelectMultipleField, widgets
 from wtforms.validators import DataRequired, Email, Length, InputRequired, NumberRange
 from datetime import date
@@ -30,6 +31,12 @@ class AdmissionForm(FlaskForm):
         ('Banking', 'Banking'), ('Law', 'Law'), ('Others', 'Others')
     ], validators=[DataRequired()])
     address = TextAreaField('Address', validators=[DataRequired()])
+    student_image = FileField(
+        'Student Photo',
+        validators=[
+            FileAllowed(['jpg', 'jpeg', 'png'], 'Images only!')
+        ]
+    )
     
     submit = SubmitField('Submit')
 

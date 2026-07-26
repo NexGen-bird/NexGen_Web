@@ -1,5 +1,7 @@
 from flask import render_template, request, redirect, url_for, flash, session, jsonify, render_template_string
 from app import app, db
+import os
+from werkzeug.utils import secure_filename
 from models import User, Customer, Transaction, Investment, Locker
 from forms import LoginForm, ForgotPasswordForm, AdmissionForm, TransactionForm
 from utils import create_whatsapp_url, get_whatsapp_receipt_message,get_receipt_link_msg, get_whatsapp_expiry_reminder, calculate_age, format_currency, format_currency_denomination
@@ -256,24 +258,36 @@ def get_customer(customer_id):
     # just dummy data for testing
     print("This is customer data --> ",customer_id)
     customer_info = f"""
-SELECT DISTINCT ON (c.id) 
-c.id, 
-c.name,
-c.phone_number, 
-c.email,
-p.planstartdate,
-p.planexpirydate,
-c.profile_image,
-c.address,
-c.dob,
-c.education,
-(select plandueration from plandueration where id in(p.planduerationid)) as "plan"
-FROM "Customers" c
-INNER JOIN "subscription"  p ON c.id = p.customerid
-where p.planexpirydate >= current_date and c.id = '{customer_id}'
+SELECT *
+FROM (
+    SELECT
+        c.id,
+        c.name,
+        c.phone_number,
+        c.email,
+        p.planstartdate,
+        p.planexpirydate,
+        c.profile_image,
+        c.address,
+        c.dob,
+        c.education,
+        (SELECT plandueration 
+         FROM plandueration 
+         WHERE id = p.planduerationid) AS "plan",
+        ROW_NUMBER() OVER (
+            PARTITION BY c.id
+            ORDER BY p.planexpirydate DESC
+        ) AS rn
+    FROM "Customers" c
+    JOIN "subscription" p 
+      ON c.id = p.customerid
+    WHERE c.id = '{customer_id}'
+) t
+WHERE rn = 1
+
 """
     cust_data = run_sql(customer_info)
-    print("This is data -- > ",cust_data[0])
+    print("This is data -- > ",cust_data)
     if cust_data:
         customer_data = {
             "id": cust_data[0]['id'],
@@ -285,11 +299,71 @@ where p.planexpirydate >= current_date and c.id = '{customer_id}'
             "address": cust_data[0]['address'],
             "dob": cust_data[0]['dob'],
             "education": cust_data[0]['education'],
-            "profile_image": "/static/images/male.jpg"
+            # "profile_image": "/static/images/male.jpg"
+            "profile_image": cust_data[0]['profile_image'].replace('assets/img', '/static/images') if 'assets' in cust_data[0]['profile_image'] else cust_data[0]['profile_image']
         }
     else:
         customer_data= {}
     return jsonify(customer_data)
+
+# Profile image upload 
+@app.route('/upload-profile', methods=['POST'])
+def upload_profile():
+    
+    image_file = request.files.get('profile_image')
+    user_id = request.form.get('user_id')
+    phone_number = request.form.get('phone_number')
+    print("User_id --> ", user_id)
+    print("image_file --> ", image_file)
+
+    if not image_file or not user_id:
+        return jsonify({"success": False}), 400
+
+    import os, uuid
+
+    os.makedirs("temp_images", exist_ok=True)
+
+    image_filename = f"{uuid.uuid4()}.jpg"
+    temp_image_path = os.path.join("temp_images", image_filename)
+
+    # Save temporarily
+    image_file.save(temp_image_path)
+    try:
+        print("temp file path --> ",temp_image_path)
+        print("temp file path --> ",image_file)
+        print("Phone Number --> ",phone_number)
+    #     # image_filename = admission_form_data['customer_profile_image']
+        temp_image_path = (
+            os.path.join("temp_images", image_filename)
+            if image_filename else None
+        )
+        # user_details = get_customers_details("id",admission_form_data['customer_phone_number'])
+        # user_id = user_details[0]['id']
+        if temp_image_path and os.path.exists(temp_image_path):
+            upload_image(temp_image_path,str(user_id))
+            profile_url = get_profile_img(user_id)
+            update_customer(phone_number,{"profile_image":f"{profile_url}"})
+            # Delete Temp file stored
+            os.remove(temp_image_path)
+        else:
+            print("image File is not exist in temp folder..")
+        # # Upload to Supabase
+        # upload_image(temp_image_path, str(user_id))
+
+    #     # Get new URL
+        profile_url = get_profile_img(user_id)
+
+    #     # Remove temp file
+    #     os.remove(temp_image_path)
+
+        return jsonify({
+            "success": True,
+            "new_url": profile_url
+        })
+
+    except Exception as e:
+        print("Upload error:", e)
+        return jsonify({"success": False}), 500
 
 @app.route("/autocomplete/txnnames")
 def autocomplete_txnnames():
@@ -385,7 +459,9 @@ def get_student_details():
             "study_option": details["joining_for"],
             "education_details": details["education"],
             "address": details["address"],
-            "profile_img":details["profile_image"]
+            # "profile_img":details["profile_image"]
+            "profile_img":details["profile_image"].replace('assets/img', '/static/images') if 'assets' in details["profile_image"] else details["profile_image"]
+            
         }
     return {}
 @app.route("/redirect_transaction")
@@ -424,6 +500,19 @@ def admission():
     if form.validate_on_submit():
         print("Admission form submission method...")
         age = calculate_age(form.date_of_birth.data)
+        image_file = form.student_image.data
+        image_filename = None
+
+        if image_file:
+            import os, uuid
+
+            os.makedirs("temp_images", exist_ok=True)
+
+            image_filename = f"{uuid.uuid4()}.jpg"
+            temp_image_path = os.path.join("temp_images", image_filename)
+
+            image_file.save(temp_image_path)
+
         form_data = {
                 "customer_name": form.full_name.data,
                 "customer_dob": form.date_of_birth.data.strftime('%Y-%m-%d'),
@@ -433,8 +522,8 @@ def admission():
                 "customer_education": form.education_details.data,
                 "customer_joining_for": form.study_option.data,
                 "customer_address": form.address.data,
-                "customer_profile_image": "assets/img/female.jpg" if form.gender.data == "Female" else "assets/img/male.jpg",
-                # "customer_profile_image": self.profile_image.strip(),
+                # "customer_profile_image": "assets/img/female.jpg" if form.gender.data == "Female" else "assets/img/male.jpg",
+                "customer_profile_image": ("assets/img/female.jpg" if form.gender.data == "Female" else "assets/img/male.jpg") if image_filename == None else image_filename,
             }
         # print("Form Data - > ",form_data)
         session['admission_form_details'] = form_data
@@ -570,11 +659,21 @@ def add_transaction(customer_details=None):
                 session.pop('admission_form_details', None)
                 session.pop('transaction_type', None)
                 try:
-                    # user_details = get_customers_details("phone_number",self.addmission_form_data['customer_phone_number'])
-                    # user_id = user_details[0]['id']
-                    # upload_image(self.addmission_form_data['customer_profile_image'],str(user_id))
-                    # profile_url = get_profile_img(user_id)
-                    # update_customer(self.addmission_form_data['customer_phone_number'],{"profile_image":f"{profile_url}"})
+                    image_filename = admission_form_data['customer_profile_image']
+                    temp_image_path = (
+                        os.path.join("temp_images", image_filename)
+                        if image_filename else None
+                    )
+                    user_details = get_customers_details("phone_number",admission_form_data['customer_phone_number'])
+                    user_id = user_details[0]['id']
+                    if temp_image_path and os.path.exists(temp_image_path):
+                        upload_image(temp_image_path,str(user_id))
+                        profile_url = get_profile_img(user_id)
+                        update_customer(admission_form_data['customer_phone_number'],{"profile_image":f"{profile_url}"})
+                        # Delete Temp file stored
+                        os.remove(temp_image_path)
+                    else:
+                        print("image File is not exist in temp folder..")
                     print(f"shifts --> {form.shifts.data}")
                     receipt_data = {
                         "customer_name": str(admission_form_data['customer_name']) if admission_form_data['customer_name']!="" else (request.form.get('full_name').split("-")[0]).strip(),
@@ -786,7 +885,7 @@ def customers():
         #                 yield num
         
         # customers = Pagination(page, per_page, total, items)
-        
+         
         return render_template('customers.html', 
                             customers=customers_data,
                             create_whatsapp_url=create_whatsapp_url,

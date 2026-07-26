@@ -167,11 +167,20 @@
                                 {% for customer in expiring_subscriptions %}
                                 <tr>
                                     <td class="fw-semibold">
-                                        <a href="javascript:void(0);" 
-                                           onclick="showCustomerProfile('{{ customer.id }}')"
-                                           class="text-decoration-none text-primary">
-                                            {{ customer.name }}
-                                        </a>
+                                        <div class="d-flex align-items-center">
+                                            <div class="customer-avatar me-3">
+                                                <div class="bg-gradient-primary rounded-circle d-flex align-items-center justify-content-center" 
+                                                        style="width: 40px; height: 40px;">
+                                                    <img class="rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;" src="{{ customer['profile_image'].replace('assets/img', '/static/images') if 'assets' in customer['profile_image'] else customer['profile_image'] }}">
+                                                    <!-- <span class="text-white fw-bold">{{ customer['name'].upper()[0] }}</span> -->
+                                                </div>
+                                            </div>
+                                            <a href="javascript:void(0);" 
+                                            onclick="showCustomerProfile('{{ customer.id }}')"
+                                            class="text-decoration-none text-primary">
+                                                {{ customer.name }}
+                                            </a>
+                                        </div>
                                     </td>
                                     <td>{{ customer.phone_number }}</td>
                                     <td>
