@@ -185,12 +185,14 @@ def get_all_customers_names():
     except Exception as e:
        apputils.snack("red",f"Error fetching user: {e}, Re-Login")
 #  Add Transaction
-def create_transaction(txn_date,transaction_type,amount,txn_made_by, payment_method, description, transaction_for,transaction_made_to):
+def create_transaction(txn_date,transaction_type,amount, amount_upi, amount_cash,txn_made_by, payment_method, description, transaction_for,transaction_made_to):
     data = {
         "txn_date": txn_date,
         "txn_made_by": txn_made_by,
         "customer_transaction_type": transaction_type,
         "customer_amount": amount,
+        "customer_amount_upi": amount_upi,
+        "customer_amount_cash": amount_cash,
         "customer_payment_method": payment_method,
         "customer_description": description,
         "customer_transaction_for": transaction_for,
@@ -215,8 +217,7 @@ def create_transaction(txn_date,transaction_type,amount,txn_made_by, payment_met
             return response.data
 
     except Exception as e:
-       apputils.snack("red",f"Error fetching user: {e}, Re-Login")
-    
+       apputils.snack("red",f"Error fetching user: {e}, Re-Login")    
 
 #  Get All Transactions
 def get_all_transactions():
