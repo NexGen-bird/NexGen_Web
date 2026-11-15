@@ -133,7 +133,7 @@ SUM(CASE WHEN transaction_type = 'OUT' THEN amount ELSE 0 END) AS total_expenses
         "pnl_amount": partial(get_net_profit,month_start,month_end),
         "expired_count": partial(run_sql,expired_count),
         "expiring_members": partial(run_sql,exp_members_query),
-        "monthly_cash_upi":partial(get_monthly_cash_upi,month_start,month_end),
+        "monthly_cash_upi":partial(get_monthly_cash_upi,month_start,month_end), # change back to normal function while deplyment (create normal function in Supabase)
     }
 
     results = {}
@@ -585,6 +585,8 @@ def add_transaction(customer_details=None):
             "customer_transaction_date": txn_date,
             "customer_transaction_type": form.txn_type.data,
             "customer_amount": form.amount.data or 0,
+            "customer_amount_upi": form.upi_amount.data or 0,
+            "customer_amount_cash": form.cash_amount.data or 0,
             "customer_payment_method": form.payment_method.data,
             "customer_description": form.description.data.strip(),
             "customer_transaction_for": form.transaction_type.data.strip(),
@@ -611,6 +613,8 @@ def add_transaction(customer_details=None):
                 res = create_transaction(txn_date=txn_date,
                                 transaction_type=form.txn_type.data,
                                 amount=int(form.amount.data or 0),
+                                amount_upi=int(form.upi_amount.data or 0),
+                                amount_cash=int(form.cash_amount.data or 0),
                                 txn_made_by=(form.txn_made_by.data.lower()).strip(),
                                 payment_method=form.payment_method.data,
                                 transaction_for=form.transaction_type.data,
@@ -660,12 +664,16 @@ def add_transaction(customer_details=None):
                 session.pop('transaction_type', None)
                 try:
                     image_filename = admission_form_data['customer_profile_image']
+                    print("#############image file name --->", image_filename)
                     temp_image_path = (
                         os.path.join("temp_images", image_filename)
                         if image_filename else None
                     )
+                    # print("################# temp_image_path --> ", temp_image_path)
                     user_details = get_customers_details("phone_number",admission_form_data['customer_phone_number'])
+                    # print("################# user_details --> ", user_details)
                     user_id = user_details[0]['id']
+                    # print("#################User id --> ", user_id)
                     if temp_image_path and os.path.exists(temp_image_path):
                         upload_image(temp_image_path,str(user_id))
                         profile_url = get_profile_img(user_id)
@@ -702,7 +710,7 @@ def add_transaction(customer_details=None):
                             apputils.snack(color="red",msg=receipt_res.split(":")[1])
                     else:
                         flash("No Receipt result")
-                    msg = f"""
+                    msg_ = f"""
     *ENTRY FROM WEBSIDE*
     ID - NG
     Name - {receipt_data['customer_name']}
@@ -714,18 +722,17 @@ def add_transaction(customer_details=None):
     Payment date - {date_format(txn_date)}
     Joining Date - {date_format(receipt_data['customer_planstartdate'])}
     Subscription Expiry date - {date_format(receipt_data['customer_planexpirydate'])}
-                    """
-                    
+                    """ 
                     # create_whatsapp_url(phone_number=number,message=msg)
                 except Exception as e:
                         apputils.snack("red",f"in receipt error --> {e}")
             else:
                 apputils.snack(color="red",msg=str(res))
-            
+            print(msg_)
             return jsonify({
                     "status": "success",
                     "phone": number,
-                    "message": msg
+                    "message": msg_ if msg_ else "Something went wrong"
                 })
         # return redirect(url_for('transactions'))
     else:# Clear Session
@@ -1089,3 +1096,79 @@ def create_admin():
     except Exception as e:
         print(f"Error creating admin user: {e}")
         # Tables might not exist yet, will be created later
+# Monthly Summary rount and logic
+PERIOD_START_DAY = 15  # month runs 15th -> 14th of next month
+
+def _to_dt(v):
+    if isinstance(v, datetime):
+        return v
+    return datetime.fromisoformat(str(v)[:19])  # handles '2025-10-27T05:57:16'
+
+def _period_start(d):
+    """Return the date (year, month, 15) of the period this date belongs to."""
+    if d.day >= PERIOD_START_DAY:
+        return date(d.year, d.month, PERIOD_START_DAY)
+    # before the 15th -> belongs to previous month's period
+    if d.month == 1:
+        return date(d.year - 1, 12, PERIOD_START_DAY)
+    return date(d.year, d.month - 1, PERIOD_START_DAY)
+
+def _period_end(start):
+    # 14th of the following month
+    if start.month == 12:
+        return date(start.year + 1, 1, PERIOD_START_DAY - 1)
+    return date(start.year, start.month + 1, PERIOD_START_DAY - 1)
+
+@app.route("/monthly-summary")
+def monthly_summary():
+    # Replace table name if yours differs
+    rows = get_transactionspagedata()
+
+    periods = {}
+    for t in rows:
+        dt = _to_dt(t["transaction_date"])
+        start = _period_start(dt.date())
+        key = start.strftime("%Y-%m")
+
+        p = periods.setdefault(key, {
+            "key": key,
+            "label": f"{start.strftime('%b %Y')} ({start.strftime('%d %b %Y')} – {_period_end(start).strftime('%d %b %Y')})",
+            "collections": 0, "expenses": 0,
+            "cash": 0, "upi": 0, "partial_cash": 0, "partial_upi": 0,
+            "txns": [],
+        })
+
+        amt = float(t.get("amount") or 0)
+        is_credit = (t.get("transaction_type") or "").strip().lower() == "credit"
+        is_investment = (t.get("transaction_for") or "").strip().lower() == "investment"
+        pm = (t.get("payment_method") or "").strip().lower()
+
+        cash_amt = float(t.get("amount_cash") or 0)
+        upi_amt = float(t.get("amount_upi") or 0)
+        sign = 1 if is_credit else -1   # debits subtract from the same bucket
+
+        # Line 1 totals
+        if is_credit:
+            if not is_investment:
+                p["collections"] += amt
+        else:
+            p["expenses"] += amt
+
+        # Line 2 buckets (net of expenses); investment stays excluded
+        if not (is_credit and is_investment):
+            if pm == "cash":
+                p["cash"] += sign * amt
+            elif pm == "upi":
+                p["upi"] += sign * amt
+            elif pm == "partial":
+                p["partial_cash"] += sign * cash_amt
+                p["partial_upi"] += sign * upi_amt
+
+        p["txns"].append({**t, "dt": dt, "is_credit": is_credit, "is_investment": is_investment})
+        
+    period_list = sorted(periods.values(), key=lambda x: x["key"], reverse=True)
+    for p in period_list:
+        p["profit"] = p["collections"] - p["expenses"]
+        p["txns"].sort(key=lambda x: x["dt"], reverse=True)
+
+    return render_template("monthly_summary.html", months=period_list)

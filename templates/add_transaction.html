@@ -153,8 +153,9 @@
                                     <i class="fas fa-rupee-sign me-1 text-primary"></i>Amount *
                                 </label>
                                 {{ form.amount(class="form-control", required=true, step="1") }}
+                                <div class="invalid-feedback" id="amountError"></div>
                             </div>
-
+                            
                             <!-- Payment Method -->
                             <div class="col-md-6">
                                 <label for="{{ form.payment_method.id }}" class="form-label fw-semibold">
@@ -310,7 +311,31 @@ function togglePartialPayment() {
         upiDiv.style.display = 'none';
     }
 }
+function validatePartialAmounts() {
+    const paymentMethod = document.getElementById('payment_method').value;
+    const amountEl = document.getElementById('amount');
+    const cashEl = document.getElementById('cash_amount');
+    const upiEl = document.getElementById('upi_amount');
+    const errorEl = document.getElementById('amountError');
 
+    amountEl.classList.remove('is-invalid');
+    errorEl.textContent = '';
+
+    if (paymentMethod !== 'Partial') return true;
+
+    const amount = parseFloat(amountEl.value) || 0;
+    const cash = parseFloat(cashEl.value) || 0;
+    const upi = parseFloat(upiEl.value) || 0;
+    const total = cash + upi;
+
+    if (Math.abs(amount - total) > 0.001) {
+        amountEl.classList.add('is-invalid');
+        errorEl.textContent =
+            `Amount (₹${amount}) must equal Cash (₹${cash}) + UPI (₹${upi}) = ₹${total}`;
+        return false;
+    }
+    return true;
+}
 function calculateEndDate() {
     const startDate = document.getElementById('start_date').value;
     const plan = document.getElementById('plan').value;
@@ -355,6 +380,22 @@ document.addEventListener('DOMContentLoaded', function() {
     toggleFields();
     togglePartialPayment();
     updateTxnType();
+    // Live validation for Partial payment amounts
+    ['amount', 'cash_amount', 'upi_amount', 'payment_method'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', validatePartialAmounts);
+            el.addEventListener('change', validatePartialAmounts);
+        }
+    });
+    // Optional: auto-fill UPI with the remainder when cash is entered
+    document.getElementById('cash_amount').addEventListener('input', function () {
+        if (document.getElementById('payment_method').value !== 'Partial') return;
+        const amount = parseFloat(document.getElementById('amount').value) || 0;
+        const cash = parseFloat(this.value) || 0;
+        document.getElementById('upi_amount').value = Math.max(amount - cash, 0);
+        validatePartialAmounts();
+    });
 });
 </script>
 <script>
@@ -402,7 +443,10 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
     document.getElementById("transactionForm").addEventListener("submit", async function(event) {
         event.preventDefault(); // stop normal page reload
-    
+        if (!validatePartialAmounts()) {
+        document.getElementById('amount').focus();
+        return;
+    }
         const form = event.target;
         const formData = new FormData(form);
     
@@ -432,6 +476,7 @@ document.addEventListener('DOMContentLoaded', function() {
             alert("⚠️ Error submitting form: " + error);
         }
     });
+    
     </script>
-                
+      
 {% endblock %}

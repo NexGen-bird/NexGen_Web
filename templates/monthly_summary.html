@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Monthly Summary - NEXGEN Study Centre{% endblock %}
+
+{% block content %}
+<style>
+    .toggle-btn i { transition: transform .2s; }
+    .toggle-btn[aria-expanded="true"] i { transform: rotate(180deg); }
+    .stat-label { font-size: .75rem; text-transform: uppercase; color: #6c757d; }
+    .stat-value { font-size: 1.5rem; font-weight: 700; }
+    .mini-stat { background: #f8f9fa; border-radius: .5rem; padding: .5rem .75rem; }
+</style>
+
+<div class="container">
+    <h3 class="mb-4"><i class="fas fa-square-poll-horizontal me-2 text-primary"></i>Monthly Summary</h3>
+
+    {% for m in months %}
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">{{ m.label }}</h5>
+                <button class="btn btn-sm btn-outline-primary toggle-btn" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#m-{{ m.key }}"
+                        aria-expanded="false" aria-controls="m-{{ m.key }}">
+                    <i class="fas fa-chevron-down"></i>
+                    <span class="ms-1">{{ m.txns|length }} transactions</span>
+                </button>
+            </div>
+
+            <!-- Line 1 -->
+            <div class="row text-center g-3 mb-3">
+                <div class="col-md-4">
+                    <div class="stat-label">Collections</div>
+                    <div class="stat-value text-success">₹{{ "{:,.0f}".format(m.collections) }}</div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-label">Expenses</div>
+                    <div class="stat-value text-danger">₹{{ "{:,.0f}".format(m.expenses) }}</div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-label">Profit</div>
+                    <div class="stat-value {{ 'text-success' if m.profit >= 0 else 'text-danger' }}">
+                        ₹{{ "{:,.0f}".format(m.profit) }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Line 2: breakdown of collections -->
+            <div class="row text-center g-2">
+                <div class="col-6 col-md-3"><div class="mini-stat">
+                    <div class="stat-label">Cash</div>
+                    <strong>₹{{ "{:,.0f}".format(m.cash) }}</strong></div></div>
+                <div class="col-6 col-md-3"><div class="mini-stat">
+                    <div class="stat-label">UPI</div>
+                    <strong>₹{{ "{:,.0f}".format(m.upi) }}</strong></div></div>
+                <div class="col-6 col-md-3"><div class="mini-stat">
+                    <div class="stat-label">Partial - Cash</div>
+                    <strong>₹{{ "{:,.0f}".format(m.partial_cash) }}</strong></div></div>
+                <div class="col-6 col-md-3"><div class="mini-stat">
+                    <div class="stat-label">Partial - UPI</div>
+                    <strong>₹{{ "{:,.0f}".format(m.partial_upi) }}</strong></div></div>
+            </div>
+        </div>
+
+        <!-- Transaction list -->
+        <div class="collapse" id="m-{{ m.key }}">
+            <div class="table-responsive border-top">
+                <table class="table table-sm table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            
+                            <th>Name</th>
+                            
+                            <th>For</th>
+                            <th>Description</th>
+                            <th>Made to</th>
+                            <th>Mode</th>
+                            <th>Type</th>
+                            <th class="text-end">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in m.txns %}
+                        <tr>
+                            <td class="text-nowrap">{{ t.dt.strftime('%d %b %Y') }}<br>
+                                <small class="text-muted">{{ t.dt.strftime('%I:%M %p') }}</small></td>
+                            
+                            <td>{{ t.name or '-' }}</td>
+                            
+                            <td>
+                                {{ t.transaction_for or '-' }}
+                                {% if t.is_investment %}<span class="badge bg-secondary">excluded</span>{% endif %}
+                            </td>
+                            <td>{{ t.description or '-' }}</td>
+                            <td>{{ t.transaction_made_to or '-' }}</td>
+                            <td>
+                                {{ t.payment_method or '-' }}
+                                {% if (t.payment_method or '')|lower == 'partial' %}
+                                <br><small class="text-muted">Cash ₹{{ t.amount_cash or 0 }} / UPI ₹{{ t.amount_upi or 0 }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge {{ 'bg-success' if t.is_credit else 'bg-danger' }}">
+                                    {{ t.transaction_type }}
+                                </span>
+                            </td>
+                            <td class="text-end">₹{{ "{:,.0f}".format(t.amount|float) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">No transactions yet.</div>
+    {% endfor %}
+</div>
+{% endblock %}
